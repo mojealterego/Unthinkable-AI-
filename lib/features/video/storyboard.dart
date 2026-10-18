@@ -157,91 +157,21 @@ class _FilmStudioScreenState extends State<FilmStudioScreen> {
   }
 
   Future<void> _editProject() async {
-    final name = TextEditingController(text: _project.title);
-    final prompt = TextEditingController(text: _project.masterPrompt);
     final updated = await showDialog<FilmProject>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Projekt filmowy'),
-        content: SingleChildScrollView(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: name, maxLength: 150, decoration: const InputDecoration(labelText: 'Tytuł filmu')),
-            TextField(controller: prompt, minLines: 3, maxLines: 8, decoration: const InputDecoration(labelText: 'Master prompt całego filmu')),
-          ]),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Anuluj')),
-          FilledButton(
-            onPressed: () {
-              if (name.text.trim().isEmpty) return;
-              Navigator.pop(dialogContext, FilmProject(
-                title: name.text.trim(), masterPrompt: prompt.text, shots: _project.shots,
-              ));
-            },
-            child: const Text('Zapisz'),
-          ),
-        ],
-      ),
+      builder: (_) => _ProjectEditDialog(project: _project),
     );
-    name.dispose();
-    prompt.dispose();
     if (updated == null || !mounted) return;
     setState(() => _project = updated);
     await _save();
   }
 
   Future<void> _editShot([FilmShot? existing]) async {
-    final name = TextEditingController(text: existing?.name ?? '');
-    final seconds = TextEditingController(text: '${existing?.durationSeconds ?? 30}');
-    final prompt = TextEditingController(text: existing?.prompt ?? '');
-    final actor = TextEditingController(text: existing?.actorReference ?? '');
-    final media = TextEditingController(text: existing?.mediaReference ?? '');
+    final id = existing?.id ?? 'shot-${DateTime.now().microsecondsSinceEpoch}-${_idCounter++}';
     final shot = await showDialog<FilmShot>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(existing == null ? 'Dodaj scenę' : 'Edytuj scenę'),
-        content: SingleChildScrollView(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(key: const Key('shot_name'), controller: name,
-              maxLength: 120, decoration: const InputDecoration(labelText: 'Nazwa sceny')),
-            TextField(key: const Key('shot_seconds'), controller: seconds,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Długość w sekundach (1–86400)')),
-            TextField(controller: actor, decoration: const InputDecoration(labelText: 'Referencja aktora / postaci')),
-            TextField(controller: media, decoration: const InputDecoration(labelText: 'Referencja materiału (ścieżka/URI)')),
-            TextField(controller: prompt, maxLines: 5,
-              decoration: const InputDecoration(labelText: 'Prompt i opis sceny')),
-          ]),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Anuluj')),
-          FilledButton(
-            key: const Key('save_shot'),
-            onPressed: () {
-              final length = int.tryParse(seconds.text);
-              if (name.text.trim().isEmpty || length == null || length < 1 || length > 86400) {
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  const SnackBar(content: Text('Podaj nazwę i prawidłowy czas sceny.')),
-                );
-                return;
-              }
-              Navigator.pop(dialogContext, FilmShot(
-                id: existing?.id ?? 'shot-${DateTime.now().microsecondsSinceEpoch}-${_idCounter++}',
-                name: name.text.trim(), durationSeconds: length,
-                prompt: prompt.text, actorReference: actor.text,
-                mediaReference: media.text, approved: existing?.approved ?? false,
-              ));
-            },
-            child: const Text('Zapisz scenę'),
-          ),
-        ],
-      ),
+      builder: (_) => _ShotEditDialog(existing: existing, id: id),
     );
-    name.dispose();
-    seconds.dispose();
-    prompt.dispose();
-    actor.dispose();
-    media.dispose();
     if (shot == null || !mounted) return;
     setState(() {
       if (existing == null) {
@@ -377,4 +307,136 @@ class _FilmStudioScreenState extends State<FilmStudioScreen> {
       ]),
     );
   }
+}
+
+class _ProjectEditDialog extends StatefulWidget {
+  const _ProjectEditDialog({required this.project});
+  final FilmProject project;
+
+  @override
+  State<_ProjectEditDialog> createState() => _ProjectEditDialogState();
+}
+
+class _ProjectEditDialogState extends State<_ProjectEditDialog> {
+  late final TextEditingController _title;
+  late final TextEditingController _prompt;
+
+  @override
+  void initState() {
+    super.initState();
+    _title = TextEditingController(text: widget.project.title);
+    _prompt = TextEditingController(text: widget.project.masterPrompt);
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _prompt.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Projekt filmowy'),
+    content: SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: _title, maxLength: 150,
+          decoration: const InputDecoration(labelText: 'Tytuł filmu')),
+        TextField(controller: _prompt, minLines: 3, maxLines: 8,
+          decoration: const InputDecoration(labelText: 'Master prompt całego filmu')),
+      ]),
+    ),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
+      FilledButton(
+        onPressed: () {
+          if (_title.text.trim().isEmpty) return;
+          Navigator.pop(context, FilmProject(
+            title: _title.text.trim(), masterPrompt: _prompt.text,
+            shots: widget.project.shots,
+          ));
+        },
+        child: const Text('Zapisz'),
+      ),
+    ],
+  );
+}
+
+class _ShotEditDialog extends StatefulWidget {
+  const _ShotEditDialog({required this.existing, required this.id});
+  final FilmShot? existing;
+  final String id;
+
+  @override
+  State<_ShotEditDialog> createState() => _ShotEditDialogState();
+}
+
+class _ShotEditDialogState extends State<_ShotEditDialog> {
+  late final TextEditingController _name;
+  late final TextEditingController _seconds;
+  late final TextEditingController _prompt;
+  late final TextEditingController _actor;
+  late final TextEditingController _media;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    _name = TextEditingController(text: existing?.name ?? '');
+    _seconds = TextEditingController(text: '${existing?.durationSeconds ?? 30}');
+    _prompt = TextEditingController(text: existing?.prompt ?? '');
+    _actor = TextEditingController(text: existing?.actorReference ?? '');
+    _media = TextEditingController(text: existing?.mediaReference ?? '');
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _seconds.dispose();
+    _prompt.dispose();
+    _actor.dispose();
+    _media.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.existing == null ? 'Dodaj scenę' : 'Edytuj scenę'),
+    content: SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(key: const Key('shot_name'), controller: _name, maxLength: 120,
+          decoration: const InputDecoration(labelText: 'Nazwa sceny')),
+        TextField(key: const Key('shot_seconds'), controller: _seconds,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Długość w sekundach (1–86400)')),
+        TextField(controller: _actor,
+          decoration: const InputDecoration(labelText: 'Referencja aktora / postaci')),
+        TextField(controller: _media,
+          decoration: const InputDecoration(labelText: 'Referencja materiału (ścieżka/URI)')),
+        TextField(controller: _prompt, maxLines: 5,
+          decoration: const InputDecoration(labelText: 'Prompt i opis sceny')),
+      ]),
+    ),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
+      FilledButton(
+        key: const Key('save_shot'),
+        onPressed: () {
+          final duration = int.tryParse(_seconds.text);
+          if (_name.text.trim().isEmpty || duration == null || duration < 1 || duration > 86400) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Podaj nazwę i prawidłowy czas sceny.')),
+            );
+            return;
+          }
+          Navigator.pop(context, FilmShot(
+            id: widget.id, name: _name.text.trim(), durationSeconds: duration,
+            prompt: _prompt.text, actorReference: _actor.text,
+            mediaReference: _media.text, approved: widget.existing?.approved ?? false,
+          ));
+        },
+        child: const Text('Zapisz scenę'),
+      ),
+    ],
+  );
 }
