@@ -1,6 +1,6 @@
 # UNTHINKABLE AI
 
-> Status: repository bootstrap / specification-first. The repository is **not** a completed Android application. No APK/AAB, backend, GPU pipeline, or continuous DGM agent has been verified yet.
+> Status: repository bootstrap / specification-first. The repository now contains a **Flutter module-catalog prototype** and a tested requirements-integrity workflow; it is **not** a completed AI application. No APK/AAB, backend, GPU pipeline, or continuous DGM agent has been verified yet.
 
 ## Product goal
 
@@ -29,14 +29,23 @@ Core inputs comprise the user's detailed feature specification and six supplied 
 4. The target branch is `main`; no new branches are created by this bootstrap.
 5. CI must actually compile/test the checked-out code; missing secrets, unavailable GPU infrastructure and absent APKs remain BLOCKED, not DONE.
 
-## Next tracked deliverables
+## Completed repository bootstrap (evidence)
 
-- `docs/REQUIREMENTS.md`: canonical source traceability and completion policy.
-- `docs/ARCHITECTURE.md`: component boundaries and execution model.
-- `docs/DEEP_RESEARCH_MASTER_PROMPT.md`: full research/engineering brief.
-- `requirements/requirements.csv`: 339-item initial source-derived register (draft; per-item page citations pending).
-- `apps/android/`, `crates/`, `services/`, `agents/`, `infra/`: implementation workspaces once bootstrap is complete.
+- `requirements/requirements.csv`: 339 individually tracked requirements in 27 source-derived domains; per-item page citations still pending.
+- `docs/SOURCE_AUDIT.md`: source provenance and uncertainty ledger.
+- `docs/DEEP_RESEARCH_MASTER_PROMPT.md`: engineering directive with full source coverage.
+- `tools/validate_requirements.py`, `tests/test_requirements.py`: integrity validator and six unit tests.
+- `.github/workflows/spec-check.yml`: first successful GitHub Actions validation: https://github.com/mojealterego/Unthinkable-AI-/actions/runs/39158265987
+- `lib/main.dart`, `pubspec.yaml`, `test/widget_test.dart`: Flutter/Dart navigable Polish feature-catalog prototype; **not** implemented engines.
+- `.github/workflows/flutter-smoke.yml`: Android debug APK smoke build, results must be checked individually.
+
+## Next deliverables
+
+- Page-accurate `requirements/traceability.csv` and decisions log.
+- Versioned `docs/ARCHITECTURE.md` with components, APIs, secrets and deployment boundaries.
+- Committed native Android project and version-pinned release toolchain.
+- `crates/`, `services/`, `agents/`, `infra/`: real feature implementations and tests.
 
 ## Truthful current status
 
-Repository initialization only. Feature implementation, testing, deployments and GitHub Actions run IDs must be recorded as separate verifiable evidence.
+**Implemented:** repository bootstrap, requirements validation, Flutter module navigation prototype. **Verified:** the requirements-validation CI run above. **Unverified/incomplete:** Android smoke run until its conclusion, all actual AI engines, billing, media pipelines and deployments. Feature implementations, test evidence, APK/AAB builds and run IDs are separate milestones.
