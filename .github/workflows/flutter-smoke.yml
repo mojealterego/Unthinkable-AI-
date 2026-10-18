@@ -6,6 +6,7 @@ on:
       - "lib/**"
       - "test/**"
       - "pubspec.yaml"
+      - "analysis_options.yaml"
       - ".github/workflows/flutter-smoke.yml"
   workflow_dispatch:
 
