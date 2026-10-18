@@ -1,3 +1,4 @@
+import 'features/chat/api_chat.dart';
 import 'features/video/storyboard.dart';
 import 'package:flutter/material.dart';
 
@@ -168,6 +169,16 @@ class DomainScreen extends StatelessWidget {
         const Text('Status: specyfikacja — oczekuje na implementację i testy.'),
         const SizedBox(height: 12),
         const Text('Rejestr źródłowy: requirements/requirements.csv'),
+        if (domain.code == 'MODELS') ...[
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ApiChatScreen()),
+            ),
+            icon: const Icon(Icons.chat_outlined),
+            label: const Text('Otwórz czat API'),
+          ),
+        ],
         if (domain.code == 'VIDEO') ...[
           const SizedBox(height: 20),
           FilledButton.icon(
