@@ -1,0 +1,147 @@
+id|domain|requirement
+U-001|MODELS|Osobne sloty modeli generowania obrazu i wideo z samodzielnym podpinaniem plików modeli
+U-002|MODELS|Warianty uncensored i abliterated oraz NSFW dla obrazu i filmu (z odpowiednimi uprawnieniami)
+U-003|MODELS|Pole na klucze API wielu niezależnych dostawców
+U-004|MODELS|Samodzielny wybór modeli do generacji mediów podpiętych bezpośrednio do aplikacji
+U-005|IMAGE|Slot natywny Stable Diffusion lub innych modeli obrazowych; bez ComfyUI
+U-006|IMAGE|Bezpośrednia integracja modeli w interfejsie aplikacji
+U-007|IMAGE|Master prompt dla obrazów importowany z pliku
+U-008|IMAGE|Modele obrazowe z odpowiednimi VAE/adapters i referencjami
+U-009|IMAGE|Portrety malowane od ołówka do farb
+U-010|IMAGE|Kreator komiksów
+U-011|IMAGE|Najpierw projekt/szkic portretu lub komiksu, po zatwierdzeniu generacja
+U-012|VIDEO|Slot wideo dla serii Wan, ze sprawdzeniem aktualności wersji 3.0
+U-013|VIDEO|Możliwość osobnego podłączenia pliku VAE
+U-014|VIDEO|Dodatek Pinokio do zarządzania środowiskami/models
+U-015|VIDEO|Edytor montażu wideo zintegrowany wewnątrz aplikacji
+U-016|VIDEO|Profesjonalny NLE ze wszystkimi parametrami montażu
+U-017|VIDEO|Film ze złożonych scen o długości 123 minut lub dłuższy
+U-018|VIDEO|Łączenie wielu oddzielnie wygenerowanych scen
+U-019|VIDEO|Interfejs i sposób referencji aktorów na wzór Google Flow/Picsart
+U-020|VIDEO|Przesyłanie referencyjnych zdjęć aktorów
+U-021|VIDEO|Generowanie aktorów i postaci na podstawie opisu
+U-022|VIDEO|Zachowanie tożsamości/spójności aktora przez cały film
+U-023|VIDEO|Master prompt projektu video: import z pliku
+U-024|VIDEO|Zespół agentów filmowych od scenarzysty i reżysera po pełną ekipę
+U-025|VIDEO|Zarządzanie ustawieniami per scena, per film i końcowym eksportem
+U-026|VIDEO|Modele wideo uncensored/abliterated/NSFW i adaptery providerów
+U-027|AUDIO|Osobny moduł tworzenia muzyki
+U-028|AUDIO|Generowanie teledysku do wcześniej wygenerowanej muzyki
+U-029|AUDIO|Inspiracja przepływem Music AI
+U-030|AUDIO|Czat głosowy i tryb rozmowy
+U-031|AUDIO|Generowanie audiobooków
+U-032|GAME|Gry najstarsze i najprostsze włącznie z retro 2D
+U-033|GAME|Możliwość produkcji gier 3D aż do wymagań jakości klasy AAA
+U-034|GAME|Generowanie assetów gier, grafiki i innych zasobów
+U-035|GAME|Game Builder Code
+U-036|GAME|Game Builder NoCode
+U-037|GAME|Ponowne użycie wspólnego IDE dla aplikacji i gier
+U-038|GAME|Chmurowa automatyzacja Unity
+U-039|GAME|Chmurowa automatyzacja Godot
+U-040|GAME|Chmurowa automatyzacja Unreal
+U-041|GAME|Badanie otwartych MCP dla wszystkich trzech silników na GitHubie
+U-042|APPS|Zintegrowane środowisko IDE dla tworzenia aplikacji
+U-043|APPS|App Builder Code
+U-044|APPS|App Builder NoCode
+U-045|APPS|Kontynuacja funkcji kreatorów znanych z poprzedniej aplikacji
+U-046|AGENTS|Agents Builder Code
+U-047|AGENTS|Agents Builder NoCode
+U-048|AGENTS|Elastyczna wieloagentowa orkiestracja i agentów specjalistycznych dla produktu
+U-049|EXT|Wewnętrzne wtyczki podobne użytkowo do pluginów ChatGPT
+U-050|EXT|Skill Creator
+U-051|EXT|Tool Generator
+U-052|EXT|Serwery MCP jako rozszerzenia aplikacji
+U-053|DEEP|Rozbudowany własny moduł Deep Research
+U-054|DEEP|Rozszerzone rozumowanie i analiza w toku badań
+U-055|DEEP|Wykonywanie równoległych prac np. w repozytorium GitHub
+U-056|DEEP|Najbardziej zaawansowane praktyczne badania i praca wieloagentowa
+U-057|BROWSER|Zwykła przeglądarka internetowa clearnet
+U-058|BROWSER|Oddzielna przeglądarka Tor z obsługą .onion
+U-059|BROWSER|Ochrona wejścia do drugiej przeglądarki hasłem
+U-060|BROWSER|Możliwość przeglądania sieci onion w ramach prawa
+U-061|ANDROID|Głęboka integracja z systemem Android
+U-062|ANDROID|Mobilny agent do dbania o urządzenie
+U-063|CHAT|Komunikator tylko dla użytkowników aplikacji
+U-064|CHAT|Tworzenie pokoju linkiem
+U-065|CHAT|Tworzenie pokoju kodem QR
+U-066|CHAT|Jednorazowość pokoju
+U-067|CHAT|Po zakończeniu rozmowy obowiązek utworzenia nowego linku/pokoju
+U-068|CHAT|Generator własnych numerów wirtualnych
+U-069|CHAT|Możliwość wybrania dowolnej sekwencji cyfr jako identyfikatora
+U-070|CHAT|Numery publiczne: wybór realnie wolnych numerów do przydziału
+U-071|CHAT|Możliwość wykonywania połączeń
+U-072|CHAT|Alias maskujący prywatny numer przez własny zweryfikowany numer
+U-073|CHAT|Opcja odrębnego przydzielonego numeru
+U-074|WEB|Scraper
+U-075|WEB|Wrapper interfejsów i stron
+U-076|WEB|Generator stron internetowych WWW
+U-077|WEB|Zaawansowany generator kodów promocyjnych
+U-078|WEB|Zaawansowany generator kodów rabatowych
+U-079|WEB|Generator/Creator aliasów poczty elektronicznej
+U-080|WEB|Integracja z Google Workspace
+U-081|PUBLISH|Tworzenie ebooków
+U-082|PUBLISH|Kreator postaci do Roleplay
+U-083|PUBLISH|Generator audiobooków
+U-084|PUBLISH|Twórca książek dla małych dzieci
+U-085|PUBLISH|Generowanie autorskich historii i bajek
+U-086|PUBLISH|Automatycznie tworzone gotowe strony ilustrowanej książki
+U-087|PUBLISH|Generator komiksów dwuetapowy z akceptacją
+U-088|PUBLISH|Projektowanie malowanych portretów i etap zatwierdzania
+U-089|FOUND|Ikona postaci Santa Muerte przy napisie Unthinkable AI
+U-090|FOUND|Niepowtarzalna postać Santa Muerte w każdym oknie
+U-091|FOUND|Dopuszczenie wariantów malowanych portretów kobiet stylizowanych na Santa Muerte
+U-092|FOUND|Assety graficzne dostarcza właściciel
+U-093|FOUND|Intro wideo dokładnie 8 sekund
+U-094|FOUND|Ruch postaci Santa Muerte w intro
+U-095|FOUND|Gest wskazania w pustkę
+U-096|FOUND|Wyłaniający się z pustki napis Unthinkable AI
+U-097|FOUND|Błysk napisu
+U-098|FOUND|Gest palca na ustach
+U-099|FOUND|Drugą ręką postać wskazuje na dół ekranu
+U-100|FOUND|Małe napisy Uncensored, Abliterated, NSFW u dołu
+U-101|GITHUB|Nowa szczegółowa struktura folderów i plików
+U-102|GITHUB|Kompletny kod każdego przewidzianego pliku
+U-103|GITHUB|Agent inżynier pracujący stale w repozytorium GitHub
+U-104|GITHUB|Kod z dokumentacji APK traktowany jako baza do audytu i ulepszenia
+U-105|GITHUB|Docelowe repozytorium github.com/mojealterego/Unthinkable-AI-
+U-106|PAY|Ekstremalny plan monetyzacji
+U-107|PAY|Reklamy i lokowanie/promowanie
+U-108|PAY|Linki afiliacyjne i inne źródła przychodów
+U-109|PAY|Bezpłatna taryfa Free
+U-110|PAY|Wielostopniowe subskrypcje rosnące wraz z funkcjami
+U-111|PAY|Tanie niższe pakiety i dostęp podstawowy
+U-112|PAY|Wymóg przejścia do następnej subskrypcji dla funkcji wyższego poziomu
+U-113|PAY|Kupno jednorazowe niższych pakietów/funkcji
+U-114|PAY|Płatności PayPal
+U-115|PAY|Płatności BLIK
+U-116|PAY|Płatności Revolut
+U-117|PAY|Płatności kryptowalutami
+U-118|PAY|Opcjonalny jednorazowy zakup całej aplikacji
+U-119|DGM|Silnik Darwin–Gödel Machine
+U-120|DGM|Mechanizmy Recursive Self Improvement
+U-121|DGM|Automatyczna ocena potrzeby aktualizacji
+U-122|DGM|Samodzielne ulepszanie/przebudowywanie aplikacji po spełnieniu bramek bezpieczeństwa
+U-123|OWNER|Osobne okno tylko właściciela
+U-124|OWNER|Podłączone serwery FTP
+U-125|OWNER|Podłączone serwery SFTP
+U-126|OWNER|Zarządzanie serwerami MCP
+U-127|OWNER|Integracja Dysku Google
+U-128|OWNER|Tunel dostępu do wybranego folderu telefonu
+U-129|OWNER|Dysk sieciowy SMBv2
+U-130|OWNER|Dysk sieciowy SMBv3
+U-131|OWNER|Database Sandbox odizolowana od użytkowników
+U-132|MATH|Osobny czat nazwany Millenium Problems & Cain
+U-133|MATH|Wysoce wyspecjalizowani agenci matematycy
+U-134|MATH|Nieustanne zgłębianie matematyki
+U-135|MATH|Próby rozwiązywania siedmiu Problemów Milenijnych
+U-136|MATH|Badanie i rozwiązywanie zagadki Żuchwy Kaina
+U-137|MARKET|Wewnętrzny marketplace produktów właściciela
+U-138|MARKET|Wystawianie gotowych agentów
+U-139|MARKET|Wystawianie skilli
+U-140|MARKET|Wystawianie pluginów
+U-141|MARKET|Wystawianie serwerów MCP
+U-142|MARKET|Wystawianie innych produktów cyfrowych
+U-143|MARKET|Możliwość zakupów przez użytkowników wewnątrz aplikacji
+U-144|FORMAL|Audyt matematyki we wszystkich dokumentach
+U-145|FORMAL|Kompletne zaprojektowanie infrastruktury we wszystkich dokumentach
+U-146|FORMAL|Prompt inżynieryjny do Deep Research uwzględniający wszystkie źródła
