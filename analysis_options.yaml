@@ -1,0 +1,11 @@
+# Local analysis configuration. Do not depend on a generated flutter_lints file.
+analyzer:
+  errors:
+    dead_code: error
+    invalid_assignment: error
+    unused_import: warning
+
+linter:
+  rules:
+    avoid_print: true
+    prefer_final_fields: true
