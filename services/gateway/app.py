@@ -1,0 +1,27 @@
+"""Optional FastAPI gateway. All AI planning endpoints default to deny absent API_KEY."""
+from __future__ import annotations
+
+from fastapi import FastAPI, Header, HTTPException
+from pydantic import BaseModel, Field
+from services.ai_studio.omni_orchestrator import router as creative_router, _auth
+from services.cinema.orchestrator import run_studiosync
+
+app = FastAPI(title="Unthinkable AI Service Gateway", version="0.1.0")
+app.include_router(creative_router)
+
+class IncidentRequest(BaseModel):
+    description: str = Field(min_length=10, max_length=4000)
+    mode: str = Field(default="demo", pattern="^(demo|live)$")
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "modules": ["cinema", "creative_orchestrator"],
+            "real_media_generation": False}
+
+@app.post("/api/cinema/incident")
+def analyze_incident(data: IncidentRequest, authorization: str | None = Header(default=None)):
+    _auth(authorization)
+    try:
+        return run_studiosync(data.description, mode=data.mode)
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

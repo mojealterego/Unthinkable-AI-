@@ -1,0 +1,22 @@
+name: Reused Cinema and AI Studio services
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/**"
+      - "tests/test_service_integration.py"
+      - ".github/workflows/service-reuse-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install "fastapi>=0.116,<1" "pydantic>=2.11,<3"
+      - run: python -m unittest discover -s tests -p 'test_service_integration.py' -v
