@@ -25,3 +25,12 @@ Output on success: `build/app/outputs/flutter-apk/app-debug.apk`. The debug APK 
 ## APK provenance
 
 Source documents report decompilation of an earlier Flutter APK. Decompiled symbol names and illustrative code blocks do **not** reconstruct a compilable original Dart/Flutter source tree or transfer its license. Treat the APK as a reference and reverse-engineering research artifact. Require permission/licensing review and compare observed capabilities to new independent source code before reusing.
+
+## Incremental verified functionality
+
+- A local film shotlist planner provides scene timing, scene order, cast/media reference strings, master prompt, per-scene approval, local persistence and JSON clipboard import/export. **It is not a video renderer or a full NLE.**
+- An HTTPS Chat Completions adapter provides text chat for an OpenAI-compatible provider after the user supplies a model ID and API key. The key stays in memory and is not saved to disk. Local GGUF inference is **not** implemented.
+- An automated GitHub Actions CI monitor checks failing main-branch workflows every four hours and creates deduplicated incident issues. It is **not** an autonomous code-writing DGM.
+- User directives (146), sourced proposal candidates (53) and the original 339-entry register are preserved separately. Passing the traceability validation does **not** mean the full application is implemented.
+
+For actual build and test status inspect `.github/workflows/flutter-smoke.yml`, `.github/workflows/spec-check.yml` and `.github/workflows/traceability.yml`; do not infer an APK from a passing analysis-only job.

@@ -5,7 +5,8 @@ on:
     paths:
       - "requirements/**"
       - "tools/validate_requirements.py"
-      - "tests/test_requirements.py"
+      - "tests/**"
+      - "agents/github_engineer/**"
       - ".github/workflows/spec-check.yml"
   pull_request:
   workflow_dispatch:
