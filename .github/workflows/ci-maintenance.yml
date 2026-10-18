@@ -1,0 +1,24 @@
+name: Unthinkable CI maintenance agent
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate watcher logic
+        run: python -m unittest discover -s tests -p 'test_ci_watch.py' -v
+      - name: Inspect main CI and deduplicate incident issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python agents/github_engineer/ci_watch.py
