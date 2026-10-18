@@ -7,6 +7,7 @@ from unittest.mock import patch
 from services.ai_studio.consent_core import Access, ConsentError, Duration, Grant, authorize
 from services.ai_studio.omni_orchestrator import OmniPlanRequest, Reference, _reference_conflicts, _scene_plan
 from services.cinema.orchestrator import run_studiosync
+from services.cinema.crew.orchestrator import build_run
 
 class ReuseIntegrationTests(unittest.TestCase):
     def test_cinema_demo_provenance_never_claims_real_mcp_results(self):
@@ -31,6 +32,14 @@ class ReuseIntegrationTests(unittest.TestCase):
         self.assertEqual(len(scenes), 3)
         self.assertEqual(sum(s["duration_seconds"] for s in scenes), 7440)
         self.assertTrue(all(s["qa_required"] for s in scenes))
+
+    def test_film_crew_contains_18_reproducible_specialist_roles(self):
+        plan = build_run("film-001", {"goal": "long film"})
+        self.assertEqual(len(plan.steps), 18)
+        self.assertEqual(plan.state["scene_duration_seconds"], 8)
+        self.assertEqual(plan.state["quality_gate"], "not_started")
+        self.assertEqual(plan.steps[0].agent, "Cinematic Commander")
+        self.assertEqual(plan.steps[-1].agent, "Final Master Auditor")
 
     def test_scoped_consent_and_revocation(self):
         now = datetime(2026, 10, 18, tzinfo=timezone.utc)
