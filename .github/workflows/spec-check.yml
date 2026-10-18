@@ -1,0 +1,28 @@
+name: Specification integrity
+on:
+  push:
+    branches: [main]
+    paths:
+      - "requirements/**"
+      - "tools/validate_requirements.py"
+      - "tests/test_requirements.py"
+      - ".github/workflows/spec-check.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  register-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Static CSV integrity check
+        run: python tools/validate_requirements.py --json
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
