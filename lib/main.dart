@@ -1,3 +1,4 @@
+import 'features/video/storyboard.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const UnthinkableAiApp());
@@ -102,9 +103,9 @@ class _ProjectCatalogScreenState extends State<ProjectCatalogScreen> {
                           Expanded(child: Text('Santa Muerte — slot na assety właściciela')),
                         ]),
                         const SizedBox(height: 16),
-                        const Text('339 wymagań • 27 obszarów', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                        const Text('Katalog funkcji • 27 obszarów', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
-                        const Text('Wersja demonstracyjna katalogu. Żadna z poniższych usług AI nie jest jeszcze wdrożona.'),
+                        const Text('Prototyp. Wymagania źródłowe: requirements/user-directives.psv i requirements/source-candidates.psv. Tylko wymienione jako działające moduły mają implementację.'),
                         const SizedBox(height: 16),
                         TextField(
                           key: const Key('search_domains'),
@@ -167,6 +168,16 @@ class DomainScreen extends StatelessWidget {
         const Text('Status: specyfikacja — oczekuje na implementację i testy.'),
         const SizedBox(height: 12),
         const Text('Rejestr źródłowy: requirements/requirements.csv'),
+        if (domain.code == 'VIDEO') ...[
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const FilmStudioScreen()),
+            ),
+            icon: const Icon(Icons.view_timeline_outlined),
+            label: const Text('Otwórz studio scen i ujęć'),
+          ),
+        ],
       ]),
     ),
   );

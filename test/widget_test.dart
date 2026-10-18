@@ -5,7 +5,7 @@ import 'package:unthinkable_ai/main.dart';
 void main() {
   testWidgets('Renders module register dashboard', (tester) async {
     await tester.pumpWidget(const UnthinkableAiApp());
-    expect(find.text('339 wymagań • 27 obszarów'), findsOneWidget);
+    expect(find.text('Katalog funkcji • 27 obszarów'), findsOneWidget);
     expect(find.text('Unthinkable AI'), findsOneWidget);
   });
 
