@@ -27,7 +27,7 @@ void main() {
       await file.create();
       await expectLater(
         importer.importFile(file, displayName: 'empty.gguf'),
-        throwsFileSystemException,
+        throwsA(isA<FileSystemException>()),
       );
       expect(ModelRegistry(prefs).list(), isEmpty);
     } finally {
