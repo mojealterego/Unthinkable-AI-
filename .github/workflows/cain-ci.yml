@@ -1,0 +1,20 @@
+name: Cain evidence workbench tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/cain/**"
+      - "tests/test_cain_solver.py"
+      - ".github/workflows/cain-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cain-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -p 'test_cain_solver.py' -v
