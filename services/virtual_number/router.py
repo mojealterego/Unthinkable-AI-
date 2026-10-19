@@ -3,7 +3,7 @@
 Public DID availability, SIP calling, SMS and caller-ID presentation are NOT
 provided until a carrier contract and authorization checks exist.
 """
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from typing import Literal
 
@@ -44,18 +44,23 @@ def capabilities(authorization: str | None = Header(default=None)):
 @router.post("/score")
 def score(req: ScoreRequest, authorization: str | None = Header(default=None)):
     _auth(authorization)
-    return classify_alias(req.identifier).to_dict()
+    try:
+        return classify_alias(req.identifier).to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/suggest")
 def suggest(req: SuggestRequest, authorization: str | None = Header(default=None)):
     _auth(authorization)
+    try:
+        candidates = suggest_internal_aliases(
+            prefix=req.prefix, length=req.length, style=req.style, count=req.count
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {
-        "candidates": [
-            item.to_dict() for item in suggest_internal_aliases(
-                prefix=req.prefix, length=req.length, style=req.style, count=req.count
-            )
-        ],
+        "candidates": [item.to_dict() for item in candidates],
         "scope": "on_net_only",
         "carrier_checked": False,
         "numbers_reserved": False,

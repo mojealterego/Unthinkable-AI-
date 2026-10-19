@@ -55,9 +55,18 @@ def _longest_equal_run(seq: str) -> int:
 
 
 def _longest_step_run(seq: str) -> int:
+    """Consecutive strictly rising OR strictly falling digits (no zigzags)."""
     longest = current = 1
+    direction = 0
     for a, b in zip(seq, seq[1:]):
-        current = current + 1 if int(b) - int(a) in (-1, 1) else 1
+        step = int(b) - int(a)
+        if abs(step) == 1 and (direction == 0 or step == direction):
+            current += 1
+        elif abs(step) == 1:
+            current = 2
+        else:
+            current = 1
+        direction = step if abs(step) == 1 else 0
         longest = max(longest, current)
     return longest
 
