@@ -1,3 +1,4 @@
+import 'features/web/web_studio_screen.dart';
 import 'features/web_studio/web_studio_screen.dart';
 import 'features/tools/ai_tools_screen.dart';
 import 'features/virtual_number/virtual_number_screen.dart';
@@ -191,6 +192,17 @@ class DomainScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.web_outlined),
             label: const Text('Otwórz Web Studio: Scraper / Wrapper / NoCode'),
+          ),
+        ],
+        if (domain.code == 'WEB') ...[
+          const SizedBox(height: 18),
+          FilledButton.icon(
+            key: const Key('open_web_studio'),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const WebStudioScreen()),
+            ),
+            icon: const Icon(Icons.web_outlined),
+            label: const Text('Website Studio: Scraper, Wrapper i NoCode'),
           ),
         ],
         if (domain.code == 'CHAT') ...[
