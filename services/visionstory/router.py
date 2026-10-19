@@ -7,7 +7,12 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import Literal
+import base64
+import binascii
+import json
+import ipaddress
+from urllib.parse import urlsplit
+from typing import Any, Literal
 
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field, model_validator
@@ -137,6 +142,9 @@ def capabilities(authorization: str | None = Header(default=None)):
         "ai_video_model_discovery": True,
         "image_model_discovery": True,
         "recorded_audio_script": True,
+        "avatar_cursor_pagination": True,
+        "media_understanding_structured": True,
+        "media_understanding_requires_paid_approval": True,
         "inline_audio_max_bytes": 8_000_000,
         "emotion_and_chroma_key": True,
         "talking_avatar_submit": True,
@@ -162,15 +170,33 @@ def models(authorization: str | None = Header(default=None)):
 
 
 @router.get("/avatars")
-def avatars(authorization: str | None = Header(default=None)):
+def avatars(
+    authorization: str | None = Header(default=None),
+    limit: int = 20,
+    cursor: int | None = None,
+):
     _auth(authorization)
-    return _remote(lambda: _client().avatars())
+    if not 1 <= limit <= 100 or (cursor is not None and cursor < 1):
+        raise HTTPException(status_code=422, detail="Invalid avatar pagination values")
+    if limit == 20 and cursor is None:  # backward compatibility
+        return _remote(lambda: _client().avatars())
+    return _remote(lambda: _client().list_avatars(limit=limit, cursor=cursor))
 
 
 @router.get("/avatars/public")
-def public_avatars(authorization: str | None = Header(default=None)):
+def public_avatars(
+    authorization: str | None = Header(default=None),
+    limit: int = 20,
+    cursor: int | None = None,
+):
     _auth(authorization)
-    return _remote(lambda: _client().public_avatars())
+    if not 1 <= limit <= 100 or (cursor is not None and cursor < 1):
+        raise HTTPException(status_code=422, detail="Invalid avatar pagination values")
+    if limit == 20 and cursor is None:  # backward compatibility
+        return _remote(lambda: _client().public_avatars())
+    return _remote(lambda: _client().list_avatars(
+        is_public=True, limit=limit, cursor=cursor
+    ))
 
 
 @router.get("/models/ai-video")
@@ -313,3 +339,166 @@ def talking_video_status(video_id: str, authorization: str | None = Header(defau
         }
 
     return _remote(load)
+
+
+_MEDIA_TYPES = frozenset((
+    "image/jpeg", "image/jpg", "image/png", "image/webp", "image/bmp",
+    "image/tiff", "image/gif", "audio/wav", "audio/x-wav", "audio/wave",
+    "audio/mpeg", "audio/mp3", "video/mp4", "video/quicktime", "video/mov",
+))
+_SCHEMA_PRIMITIVES = frozenset(("object", "array", "string", "number", "integer", "boolean", "null"))
+
+
+def _media_public_url(value: str) -> str:
+    if len(value) > 2048 or any(c in value for c in "\r\n\t"):
+        raise ValueError("Media URL is malformed")
+    url = urlsplit(value)
+    if url.scheme != "https" or not url.hostname or url.username or url.password or (
+        url.port not in (None, 443)
+    ) or url.fragment:
+        raise ValueError("Media URL must be public HTTPS without credentials")
+    host = url.hostname.rstrip(".").lower()
+    if host in ("localhost",) or host.endswith((".localhost", ".local", ".internal")):
+        raise ValueError("Internal media host not permitted")
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        if "." not in host or not re.fullmatch(r"[a-z0-9.-]+", host):
+            raise ValueError("Invalid public media hostname")
+    else:
+        if not ip.is_global:
+            raise ValueError("Non-public IP in media URL")
+    return value
+
+
+class MediaInline(BaseModel):
+    mime_type: Literal[
+        "image/jpeg", "image/jpg", "image/png", "image/webp", "image/bmp",
+        "image/tiff", "image/gif", "audio/wav", "audio/x-wav", "audio/wave",
+        "audio/mpeg", "audio/mp3", "video/mp4", "video/quicktime", "video/mov",
+    ]
+    data: str = Field(min_length=4, max_length=18_700_000)
+
+    @model_validator(mode="after")
+    def validate_encoded_data(self):
+        try:
+            raw = base64.b64decode(self.data, validate=True)
+        except (binascii.Error, ValueError) as exc:
+            raise ValueError("Media inline_data must be raw base64") from exc
+        if not raw or len(raw) > 14_000_000:
+            raise ValueError("Individual inline media exceeds size budget")
+        return self
+
+
+class MediaReference(BaseModel):
+    asset_id: str | None = Field(
+        default=None, max_length=160, pattern=r"^[a-zA-Z0-9_-]+$"
+    )
+    url: str | None = Field(default=None, max_length=2048)
+    inline_data: MediaInline | None = None
+
+    @model_validator(mode="after")
+    def validate_exactly_one_source(self):
+        if sum(x is not None for x in (
+            self.asset_id, self.url, self.inline_data,
+        )) != 1:
+            raise ValueError("Select exactly one media reference per input")
+        if self.url is not None:
+            _media_public_url(self.url)
+        return self
+
+
+def _validate_output_schema(schema: dict[str, Any]) -> None:
+    # A compact, bounded JSON Schema subset. Forbid remote refs and network lookups.
+    if len(json.dumps(schema, ensure_ascii=False).encode("utf-8")) > 20_000:
+        raise ValueError("Schema exceeds 20 KB")
+    if schema.get("type") != "object" or not isinstance(
+        schema.get("properties"), dict
+    ) or not schema["properties"]:
+        raise ValueError("Root schema needs type=object and nonempty properties")
+    def check(node: Any, level: int) -> None:
+        if level > 8:
+            raise ValueError("Schema nesting is too deep")
+        if isinstance(node, dict):
+            if "$ref" in node:  # conservative policy: not even local references
+                raise ValueError("Schema references are not accepted by this gateway")
+            if "type" in node and node["type"] not in _SCHEMA_PRIMITIVES:
+                raise ValueError("Unknown JSON Schema type")
+            for key, value in node.items():
+                if not isinstance(key, str) or len(key) > 100:
+                    raise ValueError("Invalid JSON Schema property name")
+                check(value, level + 1)
+        elif isinstance(node, list):
+            if len(node) > 150:
+                raise ValueError("Schema array is too long")
+            for child in node:
+                check(child, level + 1)
+        elif not isinstance(node, (str, int, float, bool, type(None))):
+            raise ValueError("Invalid JSON Schema property value")
+    check(schema, 0)
+
+
+class MediaUnderstandInput(BaseModel):
+    prompt: str = Field(min_length=1, max_length=5000)
+    inputs: list[MediaReference] = Field(min_length=1, max_length=8)
+    schema_: dict[str, Any] = Field(alias="schema")
+    confirmed_media_rights: bool = False
+    approved_for_paid_generation: bool = False
+
+    @model_validator(mode="after")
+    def validate_scope(self):
+        if not self.prompt.strip():
+            raise ValueError("Prompt cannot be blank")
+        _validate_output_schema(self.schema_)
+        inline_bytes = 0
+        for media in self.inputs:
+            if media.inline_data is not None:
+                inline_bytes += len(base64.b64decode(media.inline_data.data))
+        if inline_bytes > 14_000_000:
+            raise ValueError("Combined inline media exceeds 14 MB")
+        return self
+
+
+@router.post("/media/understand")
+def understand_media(
+    req: MediaUnderstandInput,
+    authorization: str | None = Header(default=None),
+):
+    _auth(authorization)
+    if not req.confirmed_media_rights:
+        raise HTTPException(status_code=403, detail="Media usage rights must be confirmed")
+    if not req.approved_for_paid_generation:
+        raise HTTPException(status_code=403, detail="Explicit credit approval required")
+
+    def submit():
+        client = _client()
+        credits = client.credits()
+        remaining = credits.get("remaining")
+        if type(remaining) is not int:
+            raise VisionStoryError("Cannot verify a numeric VisionStory credit balance", 424)
+        if remaining <= 0:
+            raise VisionStoryError("Paid VisionStory credits are insufficient", 402)
+        data = client.understand_media({
+            "prompt": req.prompt, "inputs": [m.model_dump(exclude_none=True) for m in req.inputs],
+            "schema": req.schema_,
+        })
+        output = data.get("output")
+        usage = data.get("usage")
+        cost = data.get("cost_credit")
+        if not isinstance(output, dict) or not isinstance(usage, dict) or (
+            type(cost) is not int or cost < 0
+        ):
+            raise VisionStoryError("VisionStory returned invalid structured media results")
+        return {
+            "output": output,
+            "usage": usage,
+            "cost_credit": cost,
+            "provider": "visionstory",
+            "operation": "media_understanding",
+            "retry_after_timeout": False,
+            "local_file_saved": False,
+        }
+
+    # Synchronous call can complete at provider after client times out.
+    # Never automatically retry: each successful completion consumes credits.
+    return _remote(submit)

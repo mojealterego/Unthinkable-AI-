@@ -54,6 +54,7 @@ class VisionStoryRest:
             ("GET", "/api/v1/voices"),
             ("GET", "/api/v1/video"),
             ("POST", "/api/v1/video"),
+            ("POST", "/api/v1/media/understand"),
         }
         url_path = path.split("?", 1)[0]
         if (method, url_path) not in allowed:
@@ -74,7 +75,7 @@ class VisionStoryRest:
             request = urllib.request.Request(url, data=body, headers=headers, method=method)
             opener = urllib.request.build_opener(NoRedirect())
             try:
-                with opener.open(request, timeout=20) as stream:
+                with opener.open(request, timeout=(190 if path == "/api/v1/media/understand" else 20)) as stream:
                     raw = stream.read(_MAX_RESPONSE + 1)
                 if len(raw) > _MAX_RESPONSE:
                     raise VisionStoryError("VisionStory response exceeded the safety limit")
@@ -106,6 +107,17 @@ class VisionStoryRest:
     def recent_videos(self) -> dict:
         return self.request("GET", "/api/v1/videos")
 
+    def list_avatars(self, *, is_public: bool = False,
+                     limit: int = 20, cursor: int | None = None) -> dict:
+        if type(is_public) is not bool or type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError("Invalid avatar visibility or page size")
+        if cursor is not None and (type(cursor) is not int or cursor < 1):
+            raise ValueError("Avatar cursor must be a positive integer")
+        query = {"is_public": "true" if is_public else "false", "limit": limit}
+        if cursor is not None:
+            query["cursor"] = cursor
+        return self.request("GET", "/api/v1/avatars?" + urllib.parse.urlencode(query))
+
     def public_avatars(self) -> dict:
         return self.request("GET", "/api/v1/avatars?is_public=true")
 
@@ -114,6 +126,10 @@ class VisionStoryRest:
 
     def voices(self) -> dict:
         return self.request("GET", "/api/v1/voices")
+
+    def understand_media(self, payload: dict) -> dict:
+        """Synchronous and potentially billable. No automatic retry on timeout."""
+        return self.request("POST", "/api/v1/media/understand", payload)
 
     def create_talking_video(self, payload: dict) -> dict:
         return self.request("POST", "/api/v1/video", payload)
