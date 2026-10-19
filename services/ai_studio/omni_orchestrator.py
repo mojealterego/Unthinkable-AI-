@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
 from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 router = APIRouter(prefix="/api/omni/orchestrator", tags=["omni-orchestrator"])
 API_KEY = os.getenv("API_KEY", "").strip()
@@ -47,8 +47,14 @@ class OmniPlanRequest(BaseModel):
     references: list[Reference] = Field(default_factory=list, max_length=32)
     model_preferences: list[str] = Field(default_factory=list, max_length=32)
     scene_count: int = Field(default=1, ge=1, le=2000)
-    target_duration_seconds: int = Field(default=0, ge=0, le=7440)
+    target_duration_seconds: int = Field(default=0, ge=0, le=43200)
     autonomy: Literal["MANUAL", "ASSISTED", "AUTONOMOUS"] = "ASSISTED"
+
+    @model_validator(mode="after")
+    def validate_duration(self):
+        if self.media_type == "VIDEO" and self.target_duration_seconds != 0 and self.target_duration_seconds < self.scene_count:
+            raise ValueError("Video duration cannot be shorter than the number of one-second scenes")
+        return self
 
 
 def _auth(authorization: str | None) -> None:
@@ -90,14 +96,15 @@ def _route(media_type: str, preferences: list[str]) -> list[str]:
 
 def _scene_plan(request: OmniPlanRequest) -> list[dict[str, Any]]:
     count = request.scene_count if request.media_type == "VIDEO" else 1
+    if request.target_duration_seconds:
+        baseline, remainder = divmod(request.target_duration_seconds, count)
+    else:
+        baseline = remainder = 0
     return [
         {
             "scene": i + 1,
-            "duration_seconds": (
-                max(1, request.target_duration_seconds // count)
-                if request.target_duration_seconds else 0
-            ),
-            "continuity_source": "LOCKED_REFERENCE_GRAPH",
+            "duration_seconds": baseline + (1 if i < remainder else 0),
+            "continuity_source": "REFERENCE_REVIEW_REQUIRED",
             "qa_required": True,
         }
         for i in range(count)

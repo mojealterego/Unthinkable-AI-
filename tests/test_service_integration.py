@@ -41,6 +41,19 @@ class ReuseIntegrationTests(unittest.TestCase):
         self.assertEqual(plan.steps[0].agent, "Cinematic Commander")
         self.assertEqual(plan.steps[-1].agent, "Final Master Auditor")
 
+    def test_long_film_duration_preserves_exact_seconds(self):
+        request = OmniPlanRequest(intent="Long film", media_type="VIDEO",
+            scene_count=7, target_duration_seconds=123 * 60 + 5)
+        segments = _scene_plan(request)
+        self.assertEqual(sum(x["duration_seconds"] for x in segments), 7385)
+        self.assertEqual(max(x["duration_seconds"] for x in segments) - min(x["duration_seconds"] for x in segments), 1)
+        self.assertTrue(all(x["continuity_source"] == "REFERENCE_REVIEW_REQUIRED" for x in segments))
+
+    def test_duration_shorter_than_shot_count_is_rejected(self):
+        from pydantic import ValidationError
+        with self.assertRaises(ValidationError):
+            OmniPlanRequest(intent="invalid", media_type="VIDEO",scene_count=20,target_duration_seconds=2)
+
     def test_scoped_consent_and_revocation(self):
         now = datetime(2026, 10, 18, tzinfo=timezone.utc)
         grant = Grant(subject_id="owner", resource="cinema:scene:1",
