@@ -110,7 +110,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Website Creator NoCode'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('web_site_name')), 'Nowa strona');
-    await tester.testTextInput.hide();
+    tester.testTextInput.hide();
     await tester.pumpAndSettle();
     final editorList = find.ancestor(
       of: find.text('Website Creator NoCode'),
