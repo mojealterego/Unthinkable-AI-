@@ -14,3 +14,18 @@ Repozytorium: mojealterego/Unthinkable-AI-; bazowa gałąź: main. Żadnych inny
 10. Preferowane granice: Flutter/Dart frontend, Rust policies/runtime, C++ inference FFI, Python research/workers, cloud GPU queues, signed extensions, audytowane MCP adapters.
 
 Systemowe wyniki każdej iteracji: zmienione pliki, SHA, testy, źródła, niezaliczone kryteria, zmapowane requirement IDs i następne zadania.
+
+## Obowiązkowa zasada ciągłego wzbogacania systemu (polecenie właściciela, 2026-10-19)
+
+**Każdy nowy dokument, PDF, opis API, repozytorium lub polecenie użytkownika jest wejściem do procesu implementacji, nie tylko do raportowania.**
+
+1. Analizuj źródła po kolei i strona po stronie, nadaj trwały identyfikator oraz przypisz każdą nową funkcję do zakresu wymagań i odpowiednich ekranów UI. Zachowaj oryginalne nazwy kontraktów API i oddzielaj oficjalne schematy od propozycji.
+2. Porównaj każdą funkcję z rzeczywistym kodem bieżącego `main` i wynikami CI. Oznacz `EXISTS_VERIFIED`, `PARTIAL`, `MISSING`, `BLOCKED` albo `DUPLICATE` wraz z dowodem. Nie uznawaj obecności karty UI za wdrożoną funkcjonalność.
+3. **Dla `MISSING` i `PARTIAL` automatycznie implementuj bezpieczną, możliwą do zweryfikowania brakującą funkcję**. Obejmij kod, migracje danych, testy jednostkowe/integracyjne, podłączenie backendu do ekranu, aktualizację dokumentacji i mapy UI. Nie ograniczaj się do zadań w Roadmapie.
+4. Wprowadzaj niezależne, małe zmiany na `main` i sprawdzaj konflikty HEAD przy każdej publikacji. Nie nadpisuj równolegle powstałych modułów; najpierw scalaj i uruchamiaj testy regresji.
+5. Jeśli integracja wymaga brakującego klucza API, konta, limitu GPU, praw do danych, licencji lub dostępu infrastrukturalnego — wykonaj wszystkie dostępne niepłatne kroki, przygotuj bezpieczny adapter i testy z atrapą dostawcy, a resztę oznacz `BLOCKED` z konkretną zależnością. Nie wpisuj sekretów do czatu/repozytorium ani nie wykonuj płatnych operacji bez zgody.
+6. Z każdym dokumentem ulepszaj architekturę i ergonomię, kiedy jest ku temu uzasadnienie techniczne; nie wymagaj nowego pytania właściciela przy zwykłych ulepszeniach kodu. Odróżniaj je od zmian wymagających rzeczywistej autoryzacji lub nowego wydatku.
+7. Właściciel dostarcza finalny wygląd i grafiki UI oddzielnie. Aktualizuj od razu nazwy ekranów, wejścia/wyjścia, zależności, stany i sloty assetów; nie zastępuj autorskiego projektu przypadkowymi grafikami.
+8. Nie ogłaszaj zakończenia całego produktu, dopóki pełny audyt źródeł, integracja i odbiór nie są potwierdzone. Po każdej iteracji podawaj dokładne commity, testy CI, brakujące funkcje i blokady.
+
+Dla VisionStory szczegóły źródłowe i rozszerzenia znajdują się w `requirements/visionstory_sources.csv`, `docs/VISIONSTORY_BATCH_02_AUDIT.md` oraz `docs/UI_SCREEN_INTEGRATION_MASTER.md`. Dokumentacja jest otwarta — użytkownik zapowiedział co najmniej 60 kolejnych plików.
