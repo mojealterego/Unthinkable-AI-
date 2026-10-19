@@ -1,3 +1,4 @@
+import 'features/virtual_number/virtual_number_screen.dart';
 import 'features/diffusion/model_library_screen.dart';
 import 'features/chat/api_chat.dart';
 import 'features/video/storyboard.dart';
@@ -170,6 +171,16 @@ class DomainScreen extends StatelessWidget {
         const Text('Status: specyfikacja — oczekuje na implementację i testy.'),
         const SizedBox(height: 12),
         const Text('Rejestr źródłowy: requirements/requirements.csv'),
+        if (domain.code == 'CHAT') ...[
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const VirtualNumberScreen()),
+            ),
+            icon: const Icon(Icons.phone_in_talk_outlined),
+            label: const Text('Virtual Number — aliasy VIP'),
+          ),
+        ],
         if (domain.code == 'MODELS' || domain.code == 'IMAGE' || domain.code == 'VIDEO') ...[
           const SizedBox(height: 16),
           FilledButton.icon(
