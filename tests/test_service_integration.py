@@ -8,6 +8,9 @@ from services.ai_studio.consent_core import Access, ConsentError, Duration, Gran
 from services.ai_studio.omni_orchestrator import OmniPlanRequest, Reference, _reference_conflicts, _scene_plan
 from services.cinema.orchestrator import run_studiosync
 from services.cinema.crew.orchestrator import build_run
+from fastapi.testclient import TestClient
+from services.gateway.app import app
+from unittest.mock import patch
 
 class ReuseIntegrationTests(unittest.TestCase):
     def test_cinema_demo_provenance_never_claims_real_mcp_results(self):
@@ -53,6 +56,47 @@ class ReuseIntegrationTests(unittest.TestCase):
         from pydantic import ValidationError
         with self.assertRaises(ValidationError):
             OmniPlanRequest(intent="invalid", media_type="VIDEO",scene_count=20,target_duration_seconds=2)
+
+    def test_project_plan_endpoint_preserves_exact_shots_and_crew(self):
+        with patch("services.ai_studio.omni_orchestrator.API_KEY", "unit-key"):
+            client = TestClient(app)
+            project = {
+                "format": "unthinkable-film-shotlist-v1",
+                "title": "Film 123+",
+                "masterPrompt": "Mroczny kryminał",
+                "shots": [
+                    {"id":"s1","name":"Intro","durationSeconds":7200,"actorReference":"Actor-1","approved":True},
+                    {"id":"s2","name":"Finał","durationSeconds":200,"actorReference":"Actor-2","approved":False},
+                ],
+            }
+            response = client.post("/api/cinema/projects/plan", json=project,
+                headers={"Authorization":"Bearer unit-key"})
+            self.assertEqual(response.status_code, 200, response.text)
+            data = response.json()
+            self.assertEqual(data["duration_seconds"], 7400)
+            self.assertEqual(data["scenes"][0]["start_seconds"], 0)
+            self.assertEqual(data["scenes"][1]["start_seconds"], 7200)
+            self.assertEqual(data["scenes"][1]["actor_reference"], "Actor-2")
+            self.assertEqual(data["unapproved_shot_ids"], ["s2"])
+            self.assertEqual(len(data["crew"]), 18)
+            self.assertFalse(data["generated_video"])
+
+    def test_project_plan_fails_closed_without_authorization(self):
+        with patch("services.ai_studio.omni_orchestrator.API_KEY", "unit-key"):
+            client = TestClient(app)
+            content = {"title":"Film","shots":[{"id":"s1","name":"Scena","durationSeconds":1}]}
+            self.assertEqual(client.post("/api/cinema/projects/plan", json=content).status_code, 401)
+            self.assertEqual(client.post("/api/cinema/projects/plan", json=content,
+                headers={"Authorization":"Bearer wrong"}).status_code, 401)
+
+    def test_project_plan_rejects_overlong_or_duplicate_shots(self):
+        with patch("services.ai_studio.omni_orchestrator.API_KEY", "unit-key"):
+            client = TestClient(app)
+            headers = {"Authorization":"Bearer unit-key"}
+            bad = {"title":"Film","shots":[{"id":"dup","name":"Scena","durationSeconds":86400}]}
+            self.assertEqual(client.post("/api/cinema/projects/plan", json=bad, headers=headers).status_code,422)
+            bad["shots"]=[{"id":"dup","name":"Scena","durationSeconds":30},{"id":"dup","name":"Druga","durationSeconds":10}]
+            self.assertEqual(client.post("/api/cinema/projects/plan", json=bad, headers=headers).status_code,422)
 
     def test_scoped_consent_and_revocation(self):
         now = datetime(2026, 10, 18, tzinfo=timezone.utc)
