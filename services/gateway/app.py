@@ -5,6 +5,7 @@ from fastapi import FastAPI, Header, HTTPException
 from services.visionstory.router import router as visionstory_router
 from services.visionstory.speech import router as visionstory_speech_router
 from services.visionstory.production import router as visionstory_production_router
+from services.visionstory.media_tools import router as visionstory_media_router
 from services.virtual_number.router import router as virtual_number_router
 from services.web_studio.router import router as web_studio_router
 from services.web.router import router as web_router
@@ -25,6 +26,7 @@ app.include_router(nocode_router)
 app.include_router(visionstory_router)
 app.include_router(visionstory_speech_router)
 app.include_router(visionstory_production_router)
+app.include_router(visionstory_media_router)
 
 class IncidentRequest(BaseModel):
     description: str = Field(min_length=10, max_length=4000)

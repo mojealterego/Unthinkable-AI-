@@ -61,6 +61,12 @@ class VisionStoryRest:
             ("GET", "/api/v1/ai_video/cost"),
             ("GET", "/api/v1/ai_video"),
             ("POST", "/api/v1/ai_video"),
+            ("GET", "/api/v1/assets"),
+            ("POST", "/api/v1/asset"),
+            ("POST", "/api/v1/avatar"),
+            ("POST", "/api/v1/avatar/framing"),
+            ("POST", "/api/v1/voice"),
+            ("POST", "/api/v1/image"),
         }
         url_path = path.split("?", 1)[0]
         if (method, url_path) not in allowed:
