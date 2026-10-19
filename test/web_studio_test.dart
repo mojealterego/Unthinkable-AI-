@@ -110,8 +110,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Website Creator NoCode'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('web_site_name')), 'Nowa strona');
-    await tester.scrollUntilVisible(find.byKey(const Key('nocode_block_title')), 220,
-      scrollable: find.byType(Scrollable).last);
+    await tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    final editorList = find.ancestor(
+      of: find.text('Website Creator NoCode'),
+      matching: find.byType(Scrollable),
+    ).first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('nocode_block_title')),
+      220,
+      scrollable: editorList,
+      maxScrolls: 30,
+    );
     await tester.enterText(find.byKey(const Key('nocode_block_title')), 'Pierwsza usługa');
     await tester.ensureVisible(find.byKey(const Key('nocode_add_block')));
     await tester.tap(find.byKey(const Key('nocode_add_block')));
