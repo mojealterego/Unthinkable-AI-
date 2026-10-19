@@ -15,6 +15,8 @@ void main() {
   testWidgets('Categorized AI tools navigate and show truthful engine state', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: AiToolsScreen()));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const Key('studio_tab_audio')), 260,
+      scrollable: find.byType(Scrollable).first);
     await tester.ensureVisible(find.byKey(const Key('studio_tab_audio')));
     await tester.tap(find.byKey(const Key('studio_tab_audio')));
     await tester.pumpAndSettle();
