@@ -71,3 +71,10 @@ Dla każdego nowego pliku:
 5. Uzupełnić macierz UI; nie projektować grafik zamiast właściciela.
 6. Dopiero po przeglądzie kompletnej partii ustalić ostateczną liczbę ekranów i listę integracji.
 
+
+## Wdrożenie luk z partii II — 2026-10-19
+
+- **VS-004 str. 2:** GET `/api/cinema/visionstory/avatars` oraz `/avatars/public` mają teraz `limit` (1–100) i `cursor` (liczba dodatnia). Dane i `next_cursor` pochodzą z upstream. Brak lokalnego serwisu cache/GUI Flutter.
+- **VS-004 str. 4 i VS-006 str. 8:** POST `/api/cinema/visionstory/media/understand` wykonuje ustrukturyzowaną analizę mediów z backendu. Kontrakt producenta potwierdzony w jego dokumencie `https://developers.visionstory.ai/reference/media-understanding/understand-media`. Walidacja 1–8 mediów, schematu typu object ≤20 KB, base64, publicznego HTTPS i łącznego inline media ≤14MB; osobna zgoda na użycie mediów i płatną operację. Weryfikuje saldo kredytów. Zwraca `output`, `usage`, `cost_credit`, nie ponawia automatycznie po timeout.
+- Testy `tests/test_visionstory_new_functions.py` wykorzystują fałszywego dostawcę — nie zużywają kredytów.
+- **Nadal brak:** Flutter UI, połączenia z kontem producenta, SRT/diarization, lokalnego/remote MCP, pełnego przeglądu 28 operacji, trwałego magazynu zadań i realnego renderowania. To nie jest ukończona cała integracja.

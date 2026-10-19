@@ -63,3 +63,9 @@ No media deletion is done by this adapter or setup process.
 ## Audit of the owner's three reference PDFs
 
 A page-by-page requirements map is in docs/VISIONSTORY_PDF_AUDIT.md. Additional tests are in tests/test_visionstory_documents.py. This is backend work and its passing CI must not be represented as successful paid rendering, enabled provider account, or completed mobile UI.
+
+## Dodatkowe endpointy po analizie partii VS-004–006
+
+- `GET /api/cinema/visionstory/avatars?limit=20&cursor=NEXT_CURSOR` — własne awatary, paginacja. `GET /avatars/public?limit=20&cursor=NEXT_CURSOR` — katalog publiczny. `next_cursor=0` oznacza koniec.
+- `POST /api/cinema/visionstory/media/understand` — wyłącznie z potwierdzonymi prawami do używanych mediów (`confirmed_media_rights=true`) i akceptacją możliwych kredytów (`approved_for_paid_generation=true`). Body: `prompt` (1–5000 znaków), `inputs` (1–8 pozycji, każda ma `asset_id` albo publiczny `url` albo `inline_data` z `mime_type` i base64), `schema` (JSON Schema z top-level `type: object`). Odpowiedź: `output`, `usage`, `cost_credit`. Limit schema 20 KB, inline media 14 MB. Płatna analiza jest synchroniczna (timeout do ~180 s u dostawcy, 190 s po stronie adaptera); gateway nie ponawia czasowych błędów.
+- Nie dodawano operacji DELETE ani możliwości omijania zasad usługodawcy. Żadne z nowych API nie zostało użyte przeciwko żywemu kontu podczas testów CI.
