@@ -1,3 +1,4 @@
+import 'features/web_studio/web_studio_screen.dart';
 import 'features/tools/ai_tools_screen.dart';
 import 'features/virtual_number/virtual_number_screen.dart';
 import 'features/diffusion/model_library_screen.dart';
@@ -180,6 +181,16 @@ class DomainScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.auto_awesome),
             label: const Text('Otwórz katalog Narzędzi AI'),
+          ),
+        ],
+        if (domain.code == 'WEB') ...[
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const WebStudioScreen()),
+            ),
+            icon: const Icon(Icons.web_outlined),
+            label: const Text('Otwórz Web Studio: Scraper / Wrapper / NoCode'),
           ),
         ],
         if (domain.code == 'CHAT') ...[
