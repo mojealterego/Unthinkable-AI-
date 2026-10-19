@@ -1,5 +1,11 @@
 name: Reuse repository evidence scan
 on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/reuse_scan.py"
+      - "tests/test_reuse_scan.py"
+      - ".github/workflows/reuse-evidence.yml"
   workflow_dispatch:
     inputs:
       offset:
