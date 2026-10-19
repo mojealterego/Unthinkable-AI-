@@ -210,6 +210,51 @@ class VisionStoryRest:
         return self.request("GET", "/api/v1/ai_video?video_id=" +
                             urllib.parse.quote(video_id, safe=""))
 
+    def synthesize_mp3(self, payload: dict) -> tuple[bytes, dict]:
+        """Vendor TTS is binary audio/mpeg, NOT a JSON envelope.
+
+        Never retry automatically: a timeout can still consume provider credits.
+        """
+        request = urllib.request.Request(
+            VISIONSTORY_API_BASE + "/api/v1/tts",
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "X-API-Key": self._api_key,
+                "Content-Type": "application/json", "Accept": "audio/mpeg",
+                "User-Agent": "Unthinkable-AI-Speech/1.0",
+            },
+            method="POST",
+        )
+        try:
+            opener = urllib.request.build_opener(NoRedirect())
+            with opener.open(request, timeout=190) as stream:
+                mime = (stream.headers.get("Content-Type", "") or "").split(";")[0].lower()
+                audio = stream.read(20_000_001)
+                headers = {key: stream.headers.get(key) for key in
+                           ("X-Cost-Credit", "X-Usage-Characters", "X-Audio-Duration-Sec")}
+        except urllib.error.HTTPError as exc:
+            status = 424 if exc.code in (401, 403) else 429 if exc.code == 429 else 502
+            raise VisionStoryError("TTS was rejected by the provider", status) from exc
+        except (urllib.error.URLError, OSError, TimeoutError) as exc:
+            raise VisionStoryError("TTS failed; do not retry the charge automatically") from exc
+        if mime != "audio/mpeg" or not 4 <= len(audio) <= 20_000_000 or not (
+            audio.startswith(b"ID3") or (audio[0] == 255 and (audio[1] & 0xE0) == 0xE0)
+        ):
+            raise VisionStoryError("Provider did not return a valid bounded MP3")
+        if not (headers["X-Cost-Credit"] or "").isdigit() or not (
+            headers["X-Usage-Characters"] or ""
+        ).isdigit():
+            raise VisionStoryError("Missing verified TTS usage headers")
+        try:
+            duration = float(headers["X-Audio-Duration-Sec"] or 0)
+        except ValueError as exc:
+            raise VisionStoryError("Invalid TTS duration header") from exc
+        return audio, {
+            "cost_credit": int(headers["X-Cost-Credit"]),
+            "usage_characters": int(headers["X-Usage-Characters"]),
+            "duration_sec": duration,
+        }
+
     def understand_media(self, payload: dict) -> dict:
         """Synchronous and potentially billable. No automatic retry on timeout."""
         return self.request("POST", "/api/v1/media/understand", payload)
