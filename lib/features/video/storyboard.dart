@@ -1,3 +1,4 @@
+import 'production_planner.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -247,6 +248,15 @@ class _FilmStudioScreenState extends State<FilmStudioScreen> {
               const SizedBox(height: 8),
               Wrap(spacing: 6, runSpacing: 6, children: [
                 OutlinedButton(onPressed: _editProject, child: const Text('Master prompt')),
+                FilledButton.icon(
+                  key: const Key('open_production_planner'),
+                  onPressed: _project.shots.isEmpty ? null : () =>
+                    Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (_) => ProductionPlannerScreen(project: _project.toJson()),
+                    )),
+                  icon: const Icon(Icons.account_tree_outlined),
+                  label: const Text('Plan filmowy AI'),
+                ),
                 OutlinedButton(onPressed: _export, child: const Text('Eksport JSON')),
                 OutlinedButton(onPressed: _import, child: const Text('Import JSON')),
               ]),
