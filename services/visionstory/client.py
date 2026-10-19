@@ -47,6 +47,9 @@ class VisionStoryRest:
         allowed = {
             ("GET", "/api/v1/billing/credits"),
             ("GET", "/api/v1/models"),
+            ("GET", "/api/v1/ai_video/models"),
+            ("GET", "/api/v1/image/models"),
+            ("GET", "/api/v1/videos"),
             ("GET", "/api/v1/avatars"),
             ("GET", "/api/v1/voices"),
             ("GET", "/api/v1/video"),
@@ -93,6 +96,18 @@ class VisionStoryRest:
 
     def models(self) -> dict:
         return self.request("GET", "/api/v1/models")
+
+    def ai_video_models(self) -> dict:
+        return self.request("GET", "/api/v1/ai_video/models")
+
+    def image_models(self) -> dict:
+        return self.request("GET", "/api/v1/image/models")
+
+    def recent_videos(self) -> dict:
+        return self.request("GET", "/api/v1/videos")
+
+    def public_avatars(self) -> dict:
+        return self.request("GET", "/api/v1/avatars?is_public=true")
 
     def avatars(self) -> dict:
         return self.request("GET", "/api/v1/avatars")
