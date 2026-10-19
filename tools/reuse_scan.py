@@ -18,7 +18,7 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-NAME = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+NAME = re.compile(r"^[A-Za-z0-9-]+/[A-Za-z0-9_.-]+$")
 EXT = (".py", ".rs", ".dart", ".kt", ".kts", ".cpp", ".c", ".cs", ".ts", ".js")
 
 
