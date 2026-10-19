@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'website_creator_screen.dart';
-import 'website_project.dart';
 import 'web_studio_api.dart';
 
 /// Website Studio — functional frontend for Scraper, Wrapper and NoCode Builder.
