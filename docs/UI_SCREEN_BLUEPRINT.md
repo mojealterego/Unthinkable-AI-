@@ -109,3 +109,16 @@ VisionStory to zewnętrzny silnik REST; nie zastępuje ODYN ani NLE. Dwanaście 
 | F-VS-12 | Inne silniki VisionStory | Plan | AI video refs, obraz, TTS, STT, assety, MCP/Skill |
 
 Backend: services/visionstory i /api/cinema/visionstory/*. Testy z mockowanym API, bez połączenia z kontem użytkownika. Brak potwierdzonego live video. Dokładny projekt graficzny pozostaje po stronie właściciela.
+
+
+## VisionStory: dodatkowe widoki po audycie 3 PDF (2026-10-19)
+
+- F-VS-08a: scenariusz TTS, głos, tempo i emocje.
+- F-VS-08b: MP3/WAV upload lub HTTPS audio, denoise i zmiana głosu za zgodą.
+- F-VS-08c: kadrowanie awatara, referencje, kolor chromakey.
+- F-VS-03b: modele wideo Seedance / Wan / Kling i parametry, bez podszywania się pod aktywny renderer.
+- F-VS-03c: modele obrazów Nano Banana / Seedream / GPT Image; limit i rzeczywista dostępność.
+- F-VS-10a: kolejka, status, idempotencja 24 godzin i ponawianie z tym samym kluczem.
+- F-VS-11a: podgląd MP4, magazyn i 7-dniowe okno retencji dostawcy.
+
+Źródła i zakres implementacji w docs/VISIONSTORY_PDF_AUDIT.md. Powyższe pozycje są podwidokami, nie automatycznym zwiększeniem wcześniejszego wykazu 141 ekranów. Flutter nie ma jeszcze połączenia z nowymi endpointami.
