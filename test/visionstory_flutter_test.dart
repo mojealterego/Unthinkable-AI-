@@ -64,7 +64,7 @@ void main() {
       requests++;
       return http.Response('{}', 200);
     }));
-    await expectLater(client.submitAudio(
+    expect(() => client.submitAudio(
       host: 'https://studio.example', key: 'gateway-key',
       avatarId: 'avatar', modelId: 'model',
       data: [1, 2], mime: 'application/json',
@@ -80,7 +80,7 @@ void main() {
       invoked = true;
       return http.Response('{}', 200);
     }));
-    await expectLater(client.status(
+    expect(() => client.status(
       'https://studio.example', 'gateway-key', '../private'
     ), throwsFormatException);
     expect(invoked, false);
