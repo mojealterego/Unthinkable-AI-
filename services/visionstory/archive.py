@@ -94,8 +94,9 @@ def _resolve_public_ip(host: str) -> str:
         raise VisionStoryError("Approved media hostname did not resolve")
     for address in addresses:
         parsed = ipaddress.ip_address(address)
-        if parsed.ipv4_mapped:
-            parsed = parsed.ipv4_mapped
+        mapped = getattr(parsed, "ipv4_mapped", None)
+        if mapped:
+            parsed = mapped
         if not parsed.is_global:
             raise VisionStoryError("Media hostname resolves to non-public IP", 403)
     return addresses[0]
