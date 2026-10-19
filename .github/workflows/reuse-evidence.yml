@@ -1,0 +1,38 @@
+name: Reuse repository evidence scan
+on:
+  workflow_dispatch:
+    inputs:
+      offset:
+        description: "Starting position (default: daily rotation)"
+        required: false
+        default: "-1"
+      limit:
+        description: "Repositories per run (maximum 50)"
+        required: false
+        default: "25"
+  schedule:
+    - cron: "53 3 * * *"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -p 'test_reuse_scan.py' -v
+      - name: Scan limited public GitHub repositories
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCAN_OFFSET: ${{ inputs.offset || '-1' }}
+          SCAN_LIMIT: ${{ inputs.limit || '25' }}
+        run: python tools/reuse_scan.py --offset "$SCAN_OFFSET" --limit "$SCAN_LIMIT" --out reuse-evidence.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reuse-evidence-scan
+          path: reuse-evidence.csv
+          if-no-files-found: error
+          retention-days: 14
