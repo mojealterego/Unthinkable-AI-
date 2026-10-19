@@ -16,4 +16,6 @@ Endpoints:
 - `POST /api/omni/orchestrator/plan`: Bearer API_KEY required; prepares plan, does not create media.
 - `POST /api/cinema/incident`: Bearer API_KEY required; demo produces explicitly synthetic examples. Live ADK mode is not connected to a runner.
 
-These are working application/service components, not completed image/video GPU generation; no Flutter-to-backend integration or protected production deployment is claimed. Grant checks provided by `consent_core` must be explicitly enforced before *every* state-changing endpoint. Requires TLS termination, identity, abuse limits, audit persistence and secret manager before exposure.
+These are working application/service components, not completed image/video GPU generation. Flutter-to-backend planning integration is now implemented in `lib/features/video/production_api.dart`, but no public secured deployment or GPU backend is claimed. Grant checks provided by `consent_core` must be explicitly enforced before *every* state-changing endpoint. Requires TLS termination, identity, abuse limits, audit persistence and secret manager before exposure.
+
+New endpoint: `POST /api/cinema/projects/plan` accepts the exact Flutter shotlist JSON, returns 18 crew planning roles, precise starts/ends and pending approvals. See `services/gateway/DEPLOY.md` for isolated Docker runtime and constraints.

@@ -34,3 +34,13 @@ Source documents report decompilation of an earlier Flutter APK. Decompiled symb
 - User directives (146), sourced proposal candidates (53) and the original 339-entry register are preserved separately. Passing the traceability validation does **not** mean the full application is implemented.
 
 For actual build and test status inspect `.github/workflows/flutter-smoke.yml`, `.github/workflows/spec-check.yml` and `.github/workflows/traceability.yml`; do not infer an APK from a passing analysis-only job.
+
+## Current native-model and cinema-planning additions
+
+- `production_api.dart`: sends the full shotlist over HTTPS after explicit user request. Endpoint: `POST /api/cinema/projects/plan`. It enforces schema, scene order, duration and 18-role structure on the returned plan.
+- `services/gateway/Dockerfile`: isolated container build with a non-root user. See `services/gateway/DEPLOY.md`; an externally reachable HTTPS endpoint is **not provisioned automatically**.
+- `model_integrity.dart`: streaming SHA-256 of imported GGUF/safetensors and on-demand verification; existing imports without historical checksum are flagged unverified.
+- `native_engine_bridge.dart`: ODYN MethodChannel `odyn.diffusion/native_v1` adapter. On the current Flutter-generated Android host, the method channel is absent and returns `isAvailable=false`. The native C++/JNI implementation and physical GPU benchmarks remain a separate release gate.
+- The GitHub CI currently generates an Android host and adjusts its compileSdk and file_picker plugin to API 36. This temporary adjustment must be replaced by a committed, version-pinned Android project before release.
+
+The latest debug APK validation is always visible in GitHub Actions; passing a previous run does not verify a new commit. Do not treat SHA validation of bytes as compatibility with any particular inference runtime.
