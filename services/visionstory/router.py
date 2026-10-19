@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from services.ai_studio.omni_orchestrator import _auth
 from .client import VisionStoryError, configured_client
+from .jobs import configured_ledger
 
 router = APIRouter(prefix="/api/cinema/visionstory", tags=["Cinema VisionStory"])
 
@@ -322,10 +323,27 @@ def talking_video(req: TalkingVideoInput, authorization: str | None = Header(def
             "background_color": req.background_color,
             **script,
         }
-        result = client.create_talking_video(payload)
-        video_id = result.get("video_id")
-        if not isinstance(video_id, str) or not re.fullmatch(r"[a-zA-Z0-9_-]{3,160}", video_id):
-            raise VisionStoryError("Provider did not return a valid video_id")
+        ledger = configured_ledger()
+        existing = ledger.begin("avatar_video", req.client_request_id, payload) if ledger else None
+        if existing is not None:
+            return {
+                "provider": "visionstory", "video_id": existing,
+                "client_request_id": req.client_request_id,
+                "mode": "remote_provider_job", "locally_generated": False,
+                "poll_after_seconds": 5, "requires_status_check": True,
+                "reused_existing_job": True, "durable_job_ledger": True,
+            }
+        try:
+            result = client.create_talking_video(payload)
+            video_id = result.get("video_id")
+            if not isinstance(video_id, str) or not re.fullmatch(r"[a-zA-Z0-9_-]{3,160}", video_id):
+                raise VisionStoryError("Provider did not return a valid video_id")
+        except Exception:
+            if ledger:
+                ledger.mark_ambiguous("avatar_video", req.client_request_id)
+            raise
+        if ledger:
+            ledger.finish("avatar_video", req.client_request_id, video_id)
         return {
             "provider": "visionstory",
             "video_id": video_id,
@@ -334,6 +352,7 @@ def talking_video(req: TalkingVideoInput, authorization: str | None = Header(def
             "client_request_id": req.client_request_id,
             "poll_after_seconds": 5,
             "requires_status_check": True,
+            "durable_job_ledger": ledger is not None,
         }
 
     return _remote(submit)
@@ -585,3 +604,16 @@ def understand_media(
     # Synchronous call can complete at provider after client times out.
     # Never automatically retry: each successful completion consumes credits.
     return _remote(submit)
+
+
+@router.get("/jobs")
+def durable_jobs(authorization: str | None = Header(default=None), limit: int = 100):
+    """Single-owner list; never returns prompts or provider credentials."""
+    _auth(authorization)
+    ledger = configured_ledger()
+    if ledger is None:
+        raise HTTPException(status_code=503, detail="Job ledger is not configured")
+    try:
+        return {"scope": "single_owner", "jobs": ledger.list_jobs(limit)}
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

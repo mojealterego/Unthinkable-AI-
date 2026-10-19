@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from services.ai_studio.omni_orchestrator import _auth
 from .client import VisionStoryError, configured_client
+from .jobs import configured_ledger
 from .router import MediaReference
 
 router = APIRouter(prefix="/api/cinema/visionstory", tags=["VisionStory Production"])
@@ -285,10 +286,26 @@ def submit_video(req: ClipInput, authorization: str | None = Header(default=None
             payload["end_frame"] = req.end_frame.model_dump(exclude_none=True)
         if req.refs:
             payload["refs"] = [r.model_dump(exclude_none=True) for r in req.refs]
-        result = client.create_ai_video(payload)
-        video_id = result.get("video_id")
-        if not isinstance(video_id, str) or not _ID.fullmatch(video_id):
-            raise VisionStoryError("AI video provider omitted a valid video ID")
+        ledger = configured_ledger()
+        existing = ledger.begin("ai_video", req.client_request_id, payload) if ledger else None
+        if existing is not None:
+            return {
+                "video_id": existing, "status": "submitted",
+                "client_request_id": req.client_request_id,
+                "provider": "visionstory", "automatic_retry": False,
+                "reused_existing_job": True, "durable_job_ledger": True,
+            }
+        try:
+            result = client.create_ai_video(payload)
+            video_id = result.get("video_id")
+            if not isinstance(video_id, str) or not _ID.fullmatch(video_id):
+                raise VisionStoryError("AI video provider omitted a valid video ID")
+        except Exception:
+            if ledger:
+                ledger.mark_ambiguous("ai_video", req.client_request_id)
+            raise
+        if ledger:
+            ledger.finish("ai_video", req.client_request_id, video_id)
         return {
             "video_id": video_id,
             "status": result.get("status", "queued"),
@@ -298,6 +315,7 @@ def submit_video(req: ClipInput, authorization: str | None = Header(default=None
             "provider": "visionstory",
             "automatic_retry": False,
             "requires_status_polling": True,
+            "durable_job_ledger": ledger is not None,
         }
     return _paid(submit)
 
