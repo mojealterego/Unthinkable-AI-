@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Header, HTTPException
 from services.virtual_number.router import router as virtual_number_router
+from services.web_studio.router import router as web_studio_router
 from services.web.router import router as web_router
 from pydantic import BaseModel, Field, model_validator
 from typing import Literal
@@ -14,6 +15,7 @@ from dataclasses import asdict
 app = FastAPI(title="Unthinkable AI Service Gateway", version="0.1.0")
 app.include_router(creative_router)
 app.include_router(virtual_number_router)
+app.include_router(web_studio_router)
 app.include_router(web_router)
 
 class IncidentRequest(BaseModel):
