@@ -142,7 +142,10 @@ class VisionStoryPdfTests(unittest.TestCase):
             self.assertEqual(self.http.get(
                 "/api/cinema/visionstory/" + suffix).status_code, 401)
         self.assertEqual(self.http.post(
-            "/api/cinema/visionstory/talking-video", json={}
+            "/api/cinema/visionstory/talking-video",
+            json={"avatar_id": "avatar1", "model_id": "vs_character_v4",
+                  "text": "Test", "voice_id": "voice1",
+                  "client_request_id": "unauthorized0001"}
         ).status_code, 401)
 
 
