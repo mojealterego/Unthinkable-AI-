@@ -24,6 +24,7 @@ jobs:
       - run: python -m unittest discover -s tests -p 'test_visionstory_documents.py' -v
       - run: python -m unittest discover -s tests -p 'test_visionstory_new_functions.py' -v
       - run: python -m unittest discover -s tests -p 'test_visionstory_batch03.py' -v
+      - run: python -m unittest discover -s tests -p 'test_visionstory_speech.py' -v
       - run: python -m unittest discover -s tests -p 'test_virtual_number.py' -v
       - run: python -m unittest discover -s tests -p 'test_virtual_number_store.py' -v
       - run: python -m unittest discover -s tests -p 'test_web_studio.py' -v
