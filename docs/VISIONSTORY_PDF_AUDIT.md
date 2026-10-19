@@ -54,3 +54,26 @@ Pełna analiza 14 stron nowych PDF, ich unikalne wymagania, przypisania do UI, b
 ## Partia III: VS-007–VS-009
 
 Pełne 16-stronicowe rozpoznanie zmian API, duplikatu strony Overview i quickstart renderowania: [docs/VISIONSTORY_BATCH_03_AUDIT.md](VISIONSTORY_BATCH_03_AUDIT.md). Podwójny plik Overview2 ma dokładnie taki sam tekst stron 1–4 jak VS-004, ale pozostaje osobnym ID i checksum.
+
+## Stan wdrożenia po 9 PDF-ach — 2026-10-20
+
+To rejestr techniczny po przyrostowej implementacji; oznaczenie kodu nie jest potwierdzeniem dostępu do prywatnego konta VisionStory.
+
+| Funkcja źródłowa | Wdrożenie | Testy / ograniczenia |
+|---|---|---|
+| Awatar mówiący (tekst lub MP3), modele, głosy i kredyty | Serwer `services/visionstory/router.py`, Flutter `visionstory_screen.dart` | Testy mock; prawdziwe konto niepołączone |
+| Własne i publiczne awatary, kursory i katalogi | Odczyt, paginacja w routerze | Brak generatora nowego awatara, framing |
+| Voice locale/provider filters | `services/visionstory/client.py` + router | CI backend zaliczony |
+| Zapis gotowego MP4 | `services/visionstory/archive.py`, Flutter pobieranie | Wymaga operator allowlist CDN i trwałego wolumenu; brak RBAC wielu tenantów |
+| TTS do MP3 | `services/visionstory/speech.py`, Flutter pobieranie | Test mock; płatne wywołanie za zgodą |
+| STT, SRT niezależne od diarization, alignment | `services/visionstory/speech.py` i `production.py` | Endpointy za zgodą; testy mock |
+| Seedance/Wan/Kling AI video — text, first-frame, refs | `services/visionstory/production.py` | Katalog live, quotation przez GET cost, zgoda na maksymalny koszt, status job; nie sprawdzono live |
+| Model-aware video cost / credits | `services/visionstory/production.py` | Blokady niezgodnych parametrów modelu i przekroczonego budżetu |
+| Provider image generation / custom avatars / voice cloning | NIE WDROŻONO | Kolejne adaptery i UI wymagane |
+| Provider asset upload/list/delete (z wymaganą autoryzacją) | NIE WDROŻONO | Kontrakt API dostępny; należy dopisać kod i testy |
+| MCP 28 operacji, lokalny/zdalny, Agent Skill | NIE WDROŻONO produkcyjnie | Wymaga pełnego katalogu operacji, kontroli uprawnień i zatwierdzenia instalacji |
+| Trwały multitenant job store, reverse billing, NLE 123+ minut, audio→teledysk | CZĘŚĆ planowania / BRAK wykonania | Potrzebne projekty, magazyn, kolejka, silnik render/montaż i testy na infrastrukturze |
+
+Wyniki zweryfikowane: [Backend CI 39339602721](https://github.com/mojealterego/Unthinkable-AI-/actions/runs/39339602721) SUCCESS; [Flutter Android CI 39340324150](https://github.com/mojealterego/Unthinkable-AI-/actions/runs/39340324150) SUCCESS dla wcześniejszej wersji ekranu. Nowszy build Flutter nadal wymaga końcowego potwierdzenia przed akceptacją. Brak dowodu renderowania na koncie użytkownika i brak użycia płatnych kredytów.
+
+**Nie przyjmować kolejnej partii dokumentów jako zamknięcia zakresu, dopóki te pozycje MISSING i PARTIAL nie zostaną rozstrzygnięte i przetestowane.**
