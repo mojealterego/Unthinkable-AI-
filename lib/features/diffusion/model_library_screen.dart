@@ -49,6 +49,24 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
     }
   }
 
+  Future<void> _verify(ModelManifest model) async {
+    if (busy || importer == null) return;
+    setState(() => busy = true);
+    try {
+      final ok = await importer!.verifyIntegrity(model);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ok ? 'SHA-256: plik modelu jest zgodny.'
+                                  : 'SHA-256: brak sumy kontrolnej lub plik uszkodzony.')),
+      );
+    } on Object {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nie udało się zweryfikować modelu.')),
+      );
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   Future<void> _remove(ModelManifest model) async {
     if (busy || importer == null) return;
     setState(() => busy = true);
@@ -83,11 +101,18 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
         ListTile(
           title: Text(model.displayName),
           subtitle: Text('${model.format.name} • ${model.modelPath}'),
-          trailing: IconButton(
-            tooltip: 'Usuń model',
-            onPressed: busy ? null : () => _remove(model),
-            icon: const Icon(Icons.delete_outline),
-          ),
+          trailing: Wrap(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(
+              tooltip: 'Zweryfikuj SHA-256',
+              onPressed: busy ? null : () => _verify(model),
+              icon: const Icon(Icons.verified_outlined),
+            ),
+            IconButton(
+              tooltip: 'Usuń model',
+              onPressed: busy ? null : () => _remove(model),
+              icon: const Icon(Icons.delete_outline),
+            ),
+          ]),
         ),
     ]),
   );

@@ -1,3 +1,4 @@
+import 'model_integrity.dart';
 import 'dart:io';
 import 'dart:math';
 import 'package:file_picker/file_picker.dart';
@@ -42,6 +43,8 @@ class ModelImporter {
       if (await staging.length() != expectedLength) {
         throw const FileSystemException('Incomplete model copy');
       }
+      // Stream the digest: large GGUF checkpoints must not be loaded into RAM.
+      final digest = await computeFileSha256(staging);
       await staging.rename(target.path);
       final model = ModelManifest(
         id: id,
@@ -49,6 +52,7 @@ class ModelImporter {
         format: extension == 'gguf' ? ModelFormat.gguf : ModelFormat.safetensors,
         capabilities: {ModelCapability.image},
         modelPath: target.path,
+        sha256: digest,
       );
       await registry.add(model);
       return model;
@@ -57,6 +61,21 @@ class ModelImporter {
       if (await target.exists()) await target.delete();
       rethrow;
     }
+  }
+
+  /// Verify a private copy against its digest, never trust an extension alone.
+  Future<bool> verifyIntegrity(ModelManifest model) async {
+    final digest = model.sha256;
+    if (digest == null) return false; // Imported by older versions.
+    final root = await getApplicationSupportDirectory();
+    final folder = Directory('${root.path}/models');
+    final file = File(model.modelPath);
+    if (!await folder.exists() || !await file.exists() ||
+        await FileSystemEntity.isLink(file.path)) return false;
+    final safeRoot = await folder.absolute.resolveSymbolicLinks();
+    final fileParent = await file.parent.absolute.resolveSymbolicLinks();
+    if (safeRoot != fileParent) return false;
+    return await verifyFileSha256(file, digest);
   }
 
   Future<void> remove(ModelManifest model) async {
