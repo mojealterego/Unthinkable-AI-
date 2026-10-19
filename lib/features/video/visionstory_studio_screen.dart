@@ -394,7 +394,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
             _permissions(),
             OutlinedButton.icon(key: const Key('visionstory_pick_audio'),
               onPressed: busy ? null : chooseAudio,
-              icon: const Icon(Icons.upload_file), child: const Text('Wybierz MP3/WAV (do 8 MB)')),
+              icon: const Icon(Icons.upload_file), label: const Text('Wybierz MP3/WAV (do 8 MB)')),
             _field('visionstory_audio_asset', audioAssetId,
               'Lub ID własnego pliku audio u dostawcy'),
             CheckboxListTile(value: srt, title: const Text('Generuj napisy SRT'),
