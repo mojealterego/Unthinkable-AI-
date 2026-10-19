@@ -6,6 +6,7 @@ multi-tenant storage; global gateway API_KEY cannot isolate end users.
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 from hashlib import sha256
 import json
 import os
@@ -48,11 +49,15 @@ class JobLedger:
                 ON visionstory_jobs(updated_at DESC)
             """)
 
+    @contextmanager
     def _conn(self):
         db = sqlite3.connect(self.path, timeout=7.0, isolation_level=None)
-        db.row_factory = sqlite3.Row
-        db.execute("PRAGMA busy_timeout=7000")
-        return db
+        try:
+            db.row_factory = sqlite3.Row
+            db.execute("PRAGMA busy_timeout=7000")
+            yield db
+        finally:
+            db.close()
 
     @staticmethod
     def _digest(payload: dict[str, Any]) -> str:
