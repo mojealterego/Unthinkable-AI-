@@ -32,6 +32,27 @@ jobs:
           grep -q 'compileSdk = 36' android/app/build.gradle.kts
       - name: Resolve dependencies
         run: flutter pub get
+      - name: Enforce plugin Android API 36 for file_picker
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+          root = Path(os.environ.get("PUB_CACHE", str(Path.home() / ".pub-cache"))) / "hosted"
+          candidates = list(root.glob("*/file_picker-*/android/build.gradle"))
+          if len(candidates) != 1:
+              raise SystemExit(f"Expected exactly one file_picker Android plugin, got {candidates}")
+          file = candidates[0]
+          content = file.read_text(encoding="utf-8")
+          replaced, count = re.subn(
+              r"(?m)^(\s*compileSdk(?:Version)?\s*(?:=\s*)?)(?:34|flutter\.compileSdkVersion)\b",
+              r"\g<1>36", content,
+          )
+          if count != 1:
+              raise SystemExit("file_picker compileSdk declaration changed; review plugin rather than silently patch")
+          file.write_text(replaced, encoding="utf-8")
+          print(f"file_picker Android plugin compileSdk set to 36 in {file.name}")
+          PY
       - name: Static analyzer
         run: flutter analyze --no-fatal-infos
       - name: Widget tests
