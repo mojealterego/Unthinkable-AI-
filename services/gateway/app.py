@@ -5,6 +5,7 @@ from fastapi import FastAPI, Header, HTTPException
 from services.virtual_number.router import router as virtual_number_router
 from services.web_studio.router import router as web_studio_router
 from services.web.router import router as web_router
+from services.web.nocode_router import router as nocode_router
 from pydantic import BaseModel, Field, model_validator
 from typing import Literal
 from services.ai_studio.omni_orchestrator import router as creative_router, _auth
@@ -17,6 +18,7 @@ app.include_router(creative_router)
 app.include_router(virtual_number_router)
 app.include_router(web_studio_router)
 app.include_router(web_router)
+app.include_router(nocode_router)
 
 class IncidentRequest(BaseModel):
     description: str = Field(min_length=10, max_length=4000)
