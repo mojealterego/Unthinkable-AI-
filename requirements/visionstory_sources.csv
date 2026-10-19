@@ -5,3 +5,6 @@ id,filename,pages,sha256,scope
 "VS-004","VisionStory API Overview.pdf","4","46e3d9b1b86a0bb93885cdca6b8f3df7d4358243b76e25f4f690920ba139bd1f","Audyt 4/6; uwierzytelnianie, paging avatarów, kredyty, media understanding"
 "VS-005","VisionStory API Reference.pdf","2","e47ddb86ec87295abb3c559180f2e750c87542dee5772fbb65578a8ae216af9e","Audyt 5/6; nawigacja specyfikacji, OpenAPI, SDK/MCP"
 "VS-006","VisionStory API for AI Agents.pdf","8","6e0da54544923315cf5af9efaedff5543616ee03f6d784b7774ec30532de84e1","Audyt 6/6; 28 operacji MCP, Skill/CLI/SDK, polityka agentowa"
+"VS-007","VisionStory API Changelog.pdf","5","2306a47c3479cc2966bf430a15da92ea00616b6278de720112881b350f73e0f1","v0.0.4–v0.0.13; voice locale/provider paging, AI video status filters, model limitations"
+"VS-008","VisionStory API Overview2.pdf","4","7f3f8968ac4fcc10d4dcdb8d7217637246fe0870a9855c418d65c1fe81ff0058","Text-identical on all 4 pages to VS-004; separate source ID without duplicate requirements"
+"VS-009","Talking Avatar Video API Quickstart — VisionStory.pdf","7","c657a79a344d91fc24c6cdcce318c5a0728dc48418eadb5030048f18532db6cd","5-step avatar workflow and 7-day video retention; server MP4 archiving"

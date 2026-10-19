@@ -189,6 +189,18 @@ The source corpus is **6 received VisionStory PDFs / 34 pages**, with **≥60 ad
 
 Detailed source-to-design matrix: `docs/VISIONSTORY_BATCH_02_AUDIT.md`; canonical source inventory: `requirements/visionstory_sources.csv`. The full 60+ upcoming documents may introduce further screens. Do not freeze counts yet.
 
+
+### Dodatkowe podwidoki VisionStory po VS-007–VS-009 (Partia III)
+
+- FILM-VS-VOICE-02 — biblioteka głosów BCP-47 locale (np. pl-PL/en-GB), provider, paginacja, previews i statusy, istniejący backend GET /voices.
+- FILM-VS-JOBS-02 — filtrowanie queued / creating / created / failed i cursor dla AI video; widoczny limit współbieżności jako wynik zadań, nie gwarantowany wolny slot.
+- FILM-VS-MP4-01 — gotowe MP4, status archiwizacji i pobranie z operator-managed private volume; brak CDN/volume oznacza unavailable.
+- FILM-VS-MODEL-02 — profile zgodne z aktualnym katalogiem, nowe 720p/1080p/2k, historyczne 480p odczyt tylko; pricing rozdzielczości dopiero po podłączeniu cost API.
+- AUDIO-VS-STT-01 — napis SRT niezależny od diarization, eksport word timing oraz alignment. Funkcja jeszcze niezaimplementowana.
+
+To rozszerzenia istniejącej mapy ekranów, **nie** finalna osobna liczba ekranów. Źródła: VS-007–009; audyt docs/VISIONSTORY_BATCH_03_AUDIT.md; finalny wygląd dostarczy właściciel.
+
+
 ### AUDIO — Audio, Voices, Music
 
 | UI ID | Screen | Main controls / behavior | Status |

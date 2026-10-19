@@ -1,4 +1,4 @@
-# VisionStory: audyt 6 dokumentów źródłowych (34 strony; dokumentacja otwarta)
+# VisionStory: audyt 9 dokumentów źródłowych (50 stron; dokumentacja otwarta)
 
 Data: 2026-10-19. Dokumenty przekazane przez właściciela aplikacji:
 
@@ -50,3 +50,7 @@ W źródłach dostawcy istnieje rozbieżność: przykładowy stan renderowania s
 ## Partia II / dokumenty VS-004–VS-006
 
 Pełna analiza 14 stron nowych PDF, ich unikalne wymagania, przypisania do UI, braki oraz dalsze procedury: [`docs/VISIONSTORY_BATCH_02_AUDIT.md`](VISIONSTORY_BATCH_02_AUDIT.md). Rejestr 6 plików: [`requirements/visionstory_sources.csv`](../requirements/visionstory_sources.csv). Zapowiedziano co najmniej 60 dalszych plików — nie wliczono ich do liczby przeanalizowanych.
+
+## Partia III: VS-007–VS-009
+
+Pełne 16-stronicowe rozpoznanie zmian API, duplikatu strony Overview i quickstart renderowania: [docs/VISIONSTORY_BATCH_03_AUDIT.md](VISIONSTORY_BATCH_03_AUDIT.md). Podwójny plik Overview2 ma dokładnie taki sam tekst stron 1–4 jak VS-004, ale pozostaje osobnym ID i checksum.
