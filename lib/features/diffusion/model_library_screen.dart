@@ -1,3 +1,4 @@
+import 'native_engine_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'model_importer.dart';
@@ -16,6 +17,20 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
   ModelImporter? importer;
   List<ModelManifest> models = const [];
   bool busy = false;
+  bool? nativeAvailable;
+
+  Future<void> _checkNative() async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      final available = await NativeEngineBridge().isAvailable();
+      if (mounted) setState(() => nativeAvailable = available);
+    } on Object {
+      if (mounted) setState(() => nativeAvailable = false);
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
 
   @override
   void initState() { super.initState(); _load(); }
@@ -88,6 +103,16 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
     body: ListView(padding: const EdgeInsets.all(16), children: [
       const Text('Import GGUF lub safetensors i zapis metadanych. '
         'Silnik natywnej generacji obrazu/wideo nie jest jeszcze podłączony.'),
+      const SizedBox(height: 14),
+      OutlinedButton(
+        key: const Key('check_native_engine'),
+        onPressed: busy ? null : _checkNative,
+        child: const Text('Sprawdź natywny silnik inferencji'),
+      ),
+      if (nativeAvailable != null)
+        Text(nativeAvailable!
+          ? 'Silnik natywny zgłasza gotowość (wymaga testu urządzenia).'
+          : 'Brak silnika natywnego. Nie jest dostępne lokalne generowanie.'),
       const SizedBox(height: 14),
       FilledButton.icon(
         key: const Key('import_model'),
