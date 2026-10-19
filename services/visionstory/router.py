@@ -59,7 +59,7 @@ def capabilities(authorization: str | None = Header(default=None)):
     return {
         "provider": "visionstory",
         "integration": "remote_rest_backend",
-        "api_key_configured": False,  # never disclose provider secret state
+        "credential_location": "private_server",  # do not expose provider key or readiness
         "read_only_discovery": True,
         "talking_avatar_submit": True,
         "video_status": True,
