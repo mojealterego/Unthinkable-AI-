@@ -1,0 +1,7 @@
+id,filename,pages,sha256,scope
+"VS-001","Generate video — VisionStory API.PDF","5","9f06039ace25fb12a5eb0430d3d1a7145b83b6108b824bc95e51b10a9b6b68de","Audyt 1/6; POST video, pola audio/text, koszt i idempotencja"
+"VS-002","AI Video API for Developers — VisionStory.PDF","8","c140b008c0d1bafe9c2ae2cb82e70d5571a60bd1c2f2ce3a96cc6188e9fd9d6","Audyt 2/6; interfejsy SDK/CLI/MCP i domeny API"
+"VS-003","AI Models for Video, Avatars, and Images — VisionStory.pdf","7","3394915f80793768431ecf7a8f122fba59a6b2d4b8bc543c02ecaea7c0fbe231","Audyt 3/6; katalogi modeli i limity"
+"VS-004","VisionStory API Overview.pdf","4","46e3d9b1b86a0bb93885cdca6b8f3df7d4358243b76e25f4f690920ba139bd1f","Audyt 4/6; uwierzytelnianie, paging avatarów, kredyty, media understanding"
+"VS-005","VisionStory API Reference.pdf","2","e47ddb86ec87295abb3c559180f2e750c87542dee5772fbb65578a8ae216af9e","Audyt 5/6; nawigacja specyfikacji, OpenAPI, SDK/MCP"
+"VS-006","VisionStory API for AI Agents.pdf","8","6e0da54544923315cf5af9efaedff5543616ee03f6d784b7774ec30532de84e1","Audyt 6/6; 28 operacji MCP, Skill/CLI/SDK, polityka agentowa"

@@ -1,4 +1,4 @@
-# VisionStory: audyt 3 dokumentów źródłowych (20 stron)
+# VisionStory: audyt 6 dokumentów źródłowych (34 strony; dokumentacja otwarta)
 
 Data: 2026-10-19. Dokumenty przekazane przez właściciela aplikacji:
 
@@ -46,3 +46,7 @@ Są to podwidoki dotychczasowych ekranów Studia Filmowego, nie automatycznie no
 Należy dostarczyć: Android UI; trwałą bazę zadań i idempotency retry; przenoszenie pliku MP4 do bezpiecznego magazynu; płatności/licencje per-tenant; montaż wielościeżkowy; praca na ujęciach i referencjach; test na rzeczywistym koncie po dobrowolnym zatwierdzeniu kosztu. Wideo 123+ minut jest wynikiem składania ujęć, a nie jednego zadania V-Character. Publiczne katalogi nie oznaczają dostępności modeli na konkretnym koncie.
 
 W źródłach dostawcy istnieje rozbieżność: przykładowy stan renderowania success vs deklarowane enum created; gateway normalizuje success do created. Okno powtórzenia tego samego client_request_id to 24 godziny, retencja dostawcy 7 dni.
+
+## Partia II / dokumenty VS-004–VS-006
+
+Pełna analiza 14 stron nowych PDF, ich unikalne wymagania, przypisania do UI, braki oraz dalsze procedury: [`docs/VISIONSTORY_BATCH_02_AUDIT.md`](VISIONSTORY_BATCH_02_AUDIT.md). Rejestr 6 plików: [`requirements/visionstory_sources.csv`](../requirements/visionstory_sources.csv). Zapowiedziano co najmniej 60 dalszych plików — nie wliczono ich do liczby przeanalizowanych.

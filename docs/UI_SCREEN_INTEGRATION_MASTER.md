@@ -172,6 +172,23 @@ This is the 16-page website cloning document transformed into a buildable author
 | VIDEO-UI-08 | Matting/face swap | Mask video, identity permission, render | Planned |
 | VIDEO-UI-09 | Long-form render queue | Segment, resume, concat, captions, quality audit | Planned |
 
+### VisionStory provider / Agent Integration (pending final owner's film UI)
+
+The source corpus is **6 received VisionStory PDFs / 34 pages**, with **≥60 additional files announced**. Studio UX is still open. These are **subpanels within existing VIDEO, AUDIO, AGENTS and EXT groups**, *not eight more independent top-level screens*.
+
+| UI ID | Design area | Inputs, outputs and dependencies | Implementation |
+|---|---|---|---|
+| VIDEO-VS-AGENT-01 | VisionStory provider setup | Local `uvx` MCP versus remote Streamable HTTP `/mcp`, no secret exposed | Planned |
+| VIDEO-VS-AGENT-02 | MCP tool permissions/catalog | 28 operations **claimed by vendor**, classify read/paid/delete only after full OpenAPI audit | Planned |
+| VIDEO-VS-AGENT-03 | Agent Skill/CLI/SDK | Supply-chain review, user-approved install, health check, model/credit read | Planned |
+| VIDEO-VS-AGENT-04 | AI agent film task | User prompt, source assets, model, explicit cost gate, retries, job progress | Planned |
+| VIDEO-VS-MEDIA-01 | Media understanding | 1–8 reference assets + object JSON Schema, prompt, cost, 180s timeout | Planned |
+| VIDEO-VS-MEDIA-02 | STT / SRT alignment | MP3/WAV, diarization, word timing, captions/export | Planned |
+| VIDEO-VS-AVATAR-01 | Avatar paginated catalog | Owned/public toggle, `next_cursor`, preview, create/select consented portrait | Read-only basic API, pagination planned |
+| VIDEO-VS-BILLING-01 | Usage and refund evidence | Credits, per-job `cost_credit`, refunds if provider confirms, prepaid budget | Partial API |
+
+Detailed source-to-design matrix: `docs/VISIONSTORY_BATCH_02_AUDIT.md`; canonical source inventory: `requirements/visionstory_sources.csv`. The full 60+ upcoming documents may introduce further screens. Do not freeze counts yet.
+
 ### AUDIO — Audio, Voices, Music
 
 | UI ID | Screen | Main controls / behavior | Status |
