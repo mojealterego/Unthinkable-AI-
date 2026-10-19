@@ -1,3 +1,4 @@
+import 'visionstory_screen.dart';
 import 'production_planner.dart';
 import 'dart:convert';
 
@@ -256,6 +257,14 @@ class _FilmStudioScreenState extends State<FilmStudioScreen> {
                     )),
                   icon: const Icon(Icons.account_tree_outlined),
                   label: const Text('Plan filmowy AI'),
+                ),
+                OutlinedButton.icon(
+                  key: const Key('open_visionstory'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const VisionStoryScreen()),
+                  ),
+                  icon: const Icon(Icons.movie_creation_outlined),
+                  label: const Text('VisionStory AI'),
                 ),
                 OutlinedButton(onPressed: _export, child: const Text('Eksport JSON')),
                 OutlinedButton(onPressed: _import, child: const Text('Import JSON')),
