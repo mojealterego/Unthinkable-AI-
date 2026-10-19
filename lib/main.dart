@@ -1,5 +1,5 @@
-import 'features/web/web_studio_screen.dart';
-import 'features/web_studio/web_studio_screen.dart';
+import 'features/web/web_studio_screen.dart' as creator;
+import 'features/web_studio/web_studio_screen.dart' as engineering;
 import 'features/tools/ai_tools_screen.dart';
 import 'features/virtual_number/virtual_number_screen.dart';
 import 'features/diffusion/model_library_screen.dart';
@@ -188,10 +188,10 @@ class DomainScreen extends StatelessWidget {
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const WebStudioScreen()),
+              MaterialPageRoute<void>(builder: (_) => const engineering.WebStudioScreen()),
             ),
             icon: const Icon(Icons.web_outlined),
-            label: const Text('Otwórz Web Studio: Scraper / Wrapper / NoCode'),
+            label: const Text('Web Engineering: OpenAPI / Scraper / NoCode'),
           ),
         ],
         if (domain.code == 'WEB') ...[
@@ -202,7 +202,7 @@ class DomainScreen extends StatelessWidget {
               MaterialPageRoute<void>(builder: (_) => const WebStudioScreen()),
             ),
             icon: const Icon(Icons.web_outlined),
-            label: const Text('Website Studio: Scraper, Wrapper i NoCode'),
+            label: const Text('Website Creator: Audyt / Wrapper / NoCode'),
           ),
         ],
         if (domain.code == 'CHAT') ...[
