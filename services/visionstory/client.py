@@ -48,6 +48,7 @@ class VisionStoryRest:
             ("GET", "/api/v1/billing/credits"),
             ("GET", "/api/v1/models"),
             ("GET", "/api/v1/ai_video/models"),
+            ("GET", "/api/v1/ai_videos"),
             ("GET", "/api/v1/image/models"),
             ("GET", "/api/v1/videos"),
             ("GET", "/api/v1/avatars"),
@@ -126,6 +127,55 @@ class VisionStoryRest:
 
     def voices(self) -> dict:
         return self.request("GET", "/api/v1/voices")
+    def list_voices(
+        self, *, locale: str | None = None, provider: str | None = None,
+        limit: int | None = None, cursor: int = 0,
+    ) -> dict:
+        """Voice filters and BCP-47 locale, with paginated public catalog."""
+        import re
+        if locale is not None and not re.fullmatch(
+            r"[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8}){0,3}", locale
+        ):
+            raise ValueError("Invalid BCP 47 voice locale")
+        if provider is not None:
+            provider = provider.lower()
+            if provider not in {"elevenlabs", "seed", "gemini", "minimax"}:
+                raise ValueError("Unknown voice provider")
+        if limit is not None and (type(limit) is not int or not 1 <= limit <= 500):
+            raise ValueError("Voice page size must be 1..500")
+        if type(cursor) is not int or cursor < 0 or (cursor and limit is None):
+            raise ValueError("Voice cursor requires pagination")
+        query = {}
+        if locale is not None:
+            query["locale"] = locale
+        if provider is not None:
+            query["provider"] = provider
+        if limit is not None:
+            query["limit"] = limit
+            query["cursor"] = cursor
+        if not query:
+            return self.voices()
+        return self.request("GET", "/api/v1/voices?" + urllib.parse.urlencode(query))
+
+    def list_ai_videos(
+        self, *, status: str | None = None, limit: int = 20, cursor: int = 0,
+    ) -> dict:
+        """Read-only paginated AI video jobs, optionally filtered by status."""
+        if type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError("AI video page size must be 1..100")
+        if type(cursor) is not int or cursor < 0:
+            raise ValueError("AI video cursor cannot be negative")
+        if status is not None:
+            parts = status.split(",")
+            if not parts or len(parts) > 4 or any(
+                part not in {"queued", "creating", "created", "failed"} for part in parts
+            ) or len(parts) != len(set(parts)):
+                raise ValueError("Invalid AI video status filter")
+        query = {"limit": limit, "cursor": cursor}
+        if status is not None:
+            query["status"] = status
+        return self.request("GET", "/api/v1/ai_videos?" + urllib.parse.urlencode(query))
+
 
     def understand_media(self, payload: dict) -> dict:
         """Synchronous and potentially billable. No automatic retry on timeout."""

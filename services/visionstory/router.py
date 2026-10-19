@@ -149,6 +149,8 @@ def capabilities(authorization: str | None = Header(default=None)):
         "emotion_and_chroma_key": True,
         "talking_avatar_submit": True,
         "video_status": True,
+        "voice_locale_provider_pagination": True,
+        "ai_video_status_filters": True,
         "mp4_download_in_cli": True,
         "local_rendering": False,
         "automatic_voice_cloning": False,
@@ -218,9 +220,34 @@ def recent_videos(authorization: str | None = Header(default=None)):
 
 
 @router.get("/voices")
-def voices(authorization: str | None = Header(default=None)):
+def voices(
+    authorization: str | None = Header(default=None),
+    locale: str | None = None,
+    provider: str | None = None,
+    limit: int | None = None,
+    cursor: int = 0,
+):
     _auth(authorization)
-    return _remote(lambda: _client().voices())
+    try:
+        return _remote(lambda: _client().list_voices(
+            locale=locale, provider=provider, limit=limit, cursor=cursor
+        ))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/ai-videos")
+def ai_videos(
+    authorization: str | None = Header(default=None),
+    status: str | None = None, limit: int = 20, cursor: int = 0,
+):
+    _auth(authorization)
+    try:
+        return _remote(lambda: _client().list_ai_videos(
+            status=status, limit=limit, cursor=cursor
+        ))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/talking-video")
