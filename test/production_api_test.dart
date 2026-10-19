@@ -42,7 +42,7 @@ void main() {
       expect(body['masterPrompt'], 'Powracająca postać');
       expect((body['shots'] as List)[1]['approved'], false);
       expect((body['shots'] as List)[0]['durationSeconds'], 7200);
-      return http.Response(jsonEncode(validResponse()), 200);
+      return http.Response.bytes(utf8.encode(jsonEncode(validResponse())), 200);
     }));
     final result = await api.planFilm(
       baseUrl:'https://cinema.example',apiKey:'unit-secret',project:shotlist());
@@ -71,7 +71,7 @@ void main() {
     final wrong = validResponse();
     (wrong['scenes'] as List)[1]['start_seconds'] = 7201;
     final api = ProductionApiClient(client: MockClient(
-      (request) async => http.Response(jsonEncode(wrong), 200)));
+      (request) async => http.Response.bytes(utf8.encode(jsonEncode(wrong)), 200)));
     await expectLater(api.planFilm(
       baseUrl:'https://cinema.example',apiKey:'secret',project:shotlist()),
       throwsA(isA<ProductionApiException>()));
@@ -79,7 +79,7 @@ void main() {
     final fakeRender = validResponse();
     fakeRender['generated_video'] = true;
     final fake = ProductionApiClient(client: MockClient(
-      (request) async => http.Response(jsonEncode(fakeRender), 200)));
+      (request) async => http.Response.bytes(utf8.encode(jsonEncode(fakeRender)), 200)));
     await expectLater(fake.planFilm(
       baseUrl:'https://cinema.example',apiKey:'secret',project:shotlist()),
       throwsA(isA<ProductionApiException>()));
@@ -90,7 +90,7 @@ void main() {
     var requests = 0;
     final api = ProductionApiClient(client: MockClient((request) async {
       requests++;
-      return http.Response(jsonEncode(validResponse()), 200);
+      return http.Response.bytes(utf8.encode(jsonEncode(validResponse())), 200);
     }));
     await tester.pumpWidget(MaterialApp(
       home: ProductionPlannerScreen(project: shotlist(), client: api),
