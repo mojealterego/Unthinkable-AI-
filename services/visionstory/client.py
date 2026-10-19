@@ -56,6 +56,11 @@ class VisionStoryRest:
             ("GET", "/api/v1/video"),
             ("POST", "/api/v1/video"),
             ("POST", "/api/v1/media/understand"),
+            ("POST", "/api/v1/audio/transcribe"),
+            ("POST", "/api/v1/audio/align"),
+            ("GET", "/api/v1/ai_video/cost"),
+            ("GET", "/api/v1/ai_video"),
+            ("POST", "/api/v1/ai_video"),
         }
         url_path = path.split("?", 1)[0]
         if (method, url_path) not in allowed:
@@ -76,7 +81,7 @@ class VisionStoryRest:
             request = urllib.request.Request(url, data=body, headers=headers, method=method)
             opener = urllib.request.build_opener(NoRedirect())
             try:
-                with opener.open(request, timeout=(190 if path == "/api/v1/media/understand" else 20)) as stream:
+                with opener.open(request, timeout=(190 if path in ("/api/v1/media/understand", "/api/v1/audio/transcribe", "/api/v1/audio/align") else 20)) as stream:
                     raw = stream.read(_MAX_RESPONSE + 1)
                 if len(raw) > _MAX_RESPONSE:
                     raise VisionStoryError("VisionStory response exceeded the safety limit")
@@ -176,6 +181,34 @@ class VisionStoryRest:
             query["status"] = status
         return self.request("GET", "/api/v1/ai_videos?" + urllib.parse.urlencode(query))
 
+
+    def transcribe_audio(self, payload: dict) -> dict:
+        """Synchronous chargeable STT; no automatic replay on timeout."""
+        return self.request("POST", "/api/v1/audio/transcribe", payload)
+
+    def align_audio(self, payload: dict) -> dict:
+        """Synchronous chargeable forced audio alignment."""
+        return self.request("POST", "/api/v1/audio/align", payload)
+
+    def ai_video_cost(
+        self, *, model_id: str, duration_sec: int,
+        resolution: str | None = None, generate_audio: bool = True,
+    ) -> dict:
+        query = {
+            "model_id": model_id, "duration_sec": duration_sec,
+            "generate_audio": str(generate_audio).lower(),
+        }
+        if resolution is not None:
+            query["resolution"] = resolution
+        return self.request("GET", "/api/v1/ai_video/cost?" +
+                            urllib.parse.urlencode(query))
+
+    def create_ai_video(self, payload: dict) -> dict:
+        return self.request("POST", "/api/v1/ai_video", payload)
+
+    def ai_video_status(self, video_id: str) -> dict:
+        return self.request("GET", "/api/v1/ai_video?video_id=" +
+                            urllib.parse.quote(video_id, safe=""))
 
     def understand_media(self, payload: dict) -> dict:
         """Synchronous and potentially billable. No automatic retry on timeout."""
