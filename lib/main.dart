@@ -199,7 +199,7 @@ class DomainScreen extends StatelessWidget {
           FilledButton.icon(
             key: const Key('open_web_studio'),
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const WebStudioScreen()),
+              MaterialPageRoute<void>(builder: (_) => const creator.WebStudioScreen()),
             ),
             icon: const Icon(Icons.web_outlined),
             label: const Text('Website Creator: Audyt / Wrapper / NoCode'),
