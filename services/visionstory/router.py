@@ -15,6 +15,8 @@ from urllib.parse import urlsplit
 from typing import Any, Literal
 
 from fastapi import APIRouter, Header, HTTPException
+from fastapi.responses import FileResponse
+from .archive import save_completed_mp4, mp4_path, archive_root
 from pydantic import BaseModel, Field, model_validator
 
 from services.ai_studio.omni_orchestrator import _auth
@@ -149,6 +151,8 @@ def capabilities(authorization: str | None = Header(default=None)):
         "emotion_and_chroma_key": True,
         "talking_avatar_submit": True,
         "video_status": True,
+        "operator_managed_mp4_archive": True,
+        "mp4_archive_requires_approved_cdn_host": True,
         "voice_locale_provider_pagination": True,
         "ai_video_status_filters": True,
         "mp4_download_in_cli": True,
@@ -333,6 +337,58 @@ def talking_video(req: TalkingVideoInput, authorization: str | None = Header(def
         }
 
     return _remote(submit)
+
+
+@router.post("/talking-video/{video_id}/archive")
+def archive_talking_video(video_id: str, authorization: str | None = Header(default=None)):
+    """Download finished provider MP4 to explicitly configured private server storage."""
+    _auth(authorization)
+    try:
+        video = VideoId(video_id=video_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Invalid video id") from exc
+
+    def archive():
+        data = _client().video_status(video.video_id)
+        if data.get("status") not in ("created", "success"):
+            raise VisionStoryError("Video job is not completed", 409)
+        url = data.get("video_url")
+        if not isinstance(url, str) or not url:
+            raise VisionStoryError("Completed job does not have an MP4 download URL", 409)
+        filename, size = save_completed_mp4(video.video_id, url)
+        return {
+            "archived": True,
+            "video_id": video.video_id,
+            "filename": filename,
+            "bytes": size,
+            "content_type": "video/mp4",
+            "download_path": (
+                "/api/cinema/visionstory/talking-video/"
+                + video.video_id + "/file"
+            ),
+        }
+
+    return _remote(archive)
+
+
+@router.get("/talking-video/{video_id}/file")
+def download_archived_video(video_id: str, authorization: str | None = Header(default=None)):
+    """Serve only an existing, locally archived MP4 after gateway authentication."""
+    _auth(authorization)
+    try:
+        path = mp4_path(VideoId(video_id=video_id).video_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Invalid video id") from exc
+    except VisionStoryError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
+    if path.is_symlink() or not path.is_file():
+        raise HTTPException(status_code=404, detail="No archived MP4 exists for this video id")
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        filename=path.name,
+        headers={"Cache-Control": "private, no-store"},
+    )
 
 
 @router.get("/talking-video/{video_id}")
