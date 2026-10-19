@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Header, HTTPException
+from services.visionstory.router import router as visionstory_router
 from services.virtual_number.router import router as virtual_number_router
 from services.web_studio.router import router as web_studio_router
 from services.web.router import router as web_router
@@ -19,6 +20,7 @@ app.include_router(virtual_number_router)
 app.include_router(web_studio_router)
 app.include_router(web_router)
 app.include_router(nocode_router)
+app.include_router(visionstory_router)
 
 class IncidentRequest(BaseModel):
     description: str = Field(min_length=10, max_length=4000)
