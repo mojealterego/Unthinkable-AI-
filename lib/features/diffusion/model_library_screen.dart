@@ -126,7 +126,7 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
         ListTile(
           title: Text(model.displayName),
           subtitle: Text('${model.format.name} • ${model.modelPath}'),
-          trailing: Wrap(mainAxisSize: MainAxisSize.min, children: [
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             IconButton(
               tooltip: 'Zweryfikuj SHA-256',
               onPressed: busy ? null : () => _verify(model),
