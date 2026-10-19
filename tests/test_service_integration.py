@@ -46,9 +46,9 @@ class ReuseIntegrationTests(unittest.TestCase):
 
     def test_long_film_duration_preserves_exact_seconds(self):
         request = OmniPlanRequest(intent="Long film", media_type="VIDEO",
-            scene_count=7, target_duration_seconds=123 * 60 + 5)
+            scene_count=7, target_duration_seconds=123 * 60 + 6)
         segments = _scene_plan(request)
-        self.assertEqual(sum(x["duration_seconds"] for x in segments), 7385)
+        self.assertEqual(sum(x["duration_seconds"] for x in segments), 7386)
         self.assertEqual(max(x["duration_seconds"] for x in segments) - min(x["duration_seconds"] for x in segments), 1)
         self.assertTrue(all(x["continuity_source"] == "REFERENCE_REVIEW_REQUIRED" for x in segments))
 
