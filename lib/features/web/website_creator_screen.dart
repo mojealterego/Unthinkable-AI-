@@ -1,15 +1,20 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'website_project.dart';
+import 'web_studio_api.dart';
 
 /// Functional Android-first NoCode editor. Graphics/theme assets are supplied later.
 class WebsiteCreatorScreen extends StatefulWidget {
-  const WebsiteCreatorScreen({super.key, this.initial});
+  const WebsiteCreatorScreen({super.key, this.initial, this.apiBaseUrl = '', this.apiKey = ''});
   final WebsiteProject? initial;
+  final String apiBaseUrl;
+  final String apiKey;
   @override
   State<WebsiteCreatorScreen> createState() => _WebsiteCreatorScreenState();
 }
@@ -117,6 +122,39 @@ class _WebsiteCreatorScreenState extends State<WebsiteCreatorScreen> {
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Pełny projekt JSON skopiowany.')),
     );
+  }
+
+  Future<void> _exportZip() async {
+    if (widget.apiBaseUrl.isEmpty || widget.apiKey.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Eksport ZIP wymaga własnego serwera HTTPS i klucza API.')),
+      );
+      return;
+    }
+    final api = WebStudioApiClient();
+    try {
+      final bytes = await api.exportZip(
+        baseUrl: widget.apiBaseUrl, apiKey: widget.apiKey, site: site,
+      );
+      final fileName = await FilePicker.platform.saveFile(
+        dialogTitle: 'Zapisz gotową witrynę NoCode',
+        fileName: 'unthinkable-website.zip',
+        type: FileType.custom,
+        allowedExtensions: ['zip'],
+        bytes: Uint8List.fromList(bytes),
+      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(fileName == null
+          ? 'Zapis anulowany.'
+          : 'Gotowa witryna ZIP została zapisana.')),
+      );
+    } on Object {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Eksport ZIP nie powiódł się. Sprawdź backend HTTPS.')),
+      );
+    } finally {
+      api.close();
+    }
   }
 
   Future<void> _importJson() async {
@@ -301,6 +339,12 @@ class _WebsiteCreatorScreenState extends State<WebsiteCreatorScreen> {
             key: const Key('nocode_export_html'),
             onPressed: _copyHtml,
             icon: const Icon(Icons.code), label: const Text('Kopiuj HTML'),
+          ),
+          FilledButton.icon(
+            key: const Key('nocode_export_zip'),
+            onPressed: _exportZip,
+            icon: const Icon(Icons.folder_zip_outlined),
+            label: const Text('Eksport ZIP'),
           ),
           OutlinedButton(
             key: const Key('nocode_export_json'),
