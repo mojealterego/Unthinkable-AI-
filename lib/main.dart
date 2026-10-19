@@ -1,3 +1,4 @@
+import 'features/tools/ai_tools_screen.dart';
 import 'features/virtual_number/virtual_number_screen.dart';
 import 'features/diffusion/model_library_screen.dart';
 import 'features/chat/api_chat.dart';
@@ -171,6 +172,16 @@ class DomainScreen extends StatelessWidget {
         const Text('Status: specyfikacja — oczekuje na implementację i testy.'),
         const SizedBox(height: 12),
         const Text('Rejestr źródłowy: requirements/requirements.csv'),
+        if (domain.code == 'IMAGE' || domain.code == 'VIDEO' || domain.code == 'AUDIO') ...[
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const AiToolsScreen()),
+            ),
+            icon: const Icon(Icons.auto_awesome),
+            label: const Text('Otwórz katalog Narzędzi AI'),
+          ),
+        ],
         if (domain.code == 'CHAT') ...[
           const SizedBox(height: 16),
           FilledButton.icon(
