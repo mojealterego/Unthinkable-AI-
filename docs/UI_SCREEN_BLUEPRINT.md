@@ -88,3 +88,24 @@ Status źródła: repo `mojealterego/Unthinkable-AI-`, `main`, 2026-10-19. Pełn
 **P1:** `WEB 56–59`, `63–65`, `69–73`, `75`, `78–80`; obrazy, wideo, audio, creatorów. **P2:** marketplace, płatności, zaawansowana autonomizacja i połączenia z infrastrukturą.
 
 Stan funkcji musi pochodzić z rzeczywistych testów uruchomionych dla danego modułu, nie z wyglądu makiety.
+
+## VisionStory AI — dwanaście podwidoków Studia Filmowego (2026-10-19)
+
+VisionStory to zewnętrzny silnik REST; nie zastępuje ODYN ani NLE. Dwanaście pozycji F-VS-01..12 to podwidoki do projektu UI FILM, nie automatycznie dwanaście nowych ekranów głównych (bez analizy pokrycia poprzednich 141).
+
+| ID | Podwidok UI | Stan | Integracje |
+|---|---|---|---|
+| F-VS-01 | VisionStory: konfiguracja | Backend | Dostęp do serwera, bez wyświetlania sekretu |
+| F-VS-02 | Plan i kredyty | Backend | GET billing/credits, zgoda na koszt |
+| F-VS-03 | Modele mówiących awatarów | Backend | GET models, ratio, rozdzielczości |
+| F-VS-04 | Katalog awatarów | Backend | GET avatars, galeria publiczna/własna |
+| F-VS-05 | Tworzenie awatara | Plan | Własny portret, kadrowanie, zgoda |
+| F-VS-06 | Katalog głosów | Backend | GET voices, język, odsłuch |
+| F-VS-07 | Klonowanie głosu | Plan | Próbka i zgoda właściciela |
+| F-VS-08 | Awatar mówiący | Backend: tekst / Plan: audio | Scenariusz lub nagranie |
+| F-VS-09 | Parametry i potwierdzenie renderowania | Backend | Ochrona kosztów, idempotencja |
+| F-VS-10 | Kolejka i status wideo | Backend | Video ID, queued/creating/created/failed |
+| F-VS-11 | Podgląd i pobranie MP4 | Plan po stronie Androida | Retencja 7 dni, archiwum projektu |
+| F-VS-12 | Inne silniki VisionStory | Plan | AI video refs, obraz, TTS, STT, assety, MCP/Skill |
+
+Backend: services/visionstory i /api/cinema/visionstory/*. Testy z mockowanym API, bez połączenia z kontem użytkownika. Brak potwierdzonego live video. Dokładny projekt graficzny pozostaje po stronie właściciela.
