@@ -19,3 +19,9 @@ The first two reference PDFs describe SIP/VoIP, Vanity Generator, ENUM/Redis, Ka
 - Secret/tenant scoped identity, operator KYC requirements, rate limits, encrypted CDR retention and abuse detection.
 
 **The generator creates memorable candidates, not functioning telephone numbers.** No headers such as `From`, `P-Asserted-Identity` or arbitrary sender IDs are rewritten. A public number can only be shown as reserved/routable after atomic allocation and caller-ID verification through a real carrier adapter.
+
+## Stage B: persistent private (on-net) alias reservations
+
+With explicit `VIRTUAL_ALIAS_DB_PATH=/absolute/path/alias.sqlite3`, the backend enables atomic short-lived reservations in an SQLite namespace: `POST /api/virtual-number/on-net/claim`, `GET /api/virtual-number/on-net/claims`, `DELETE /api/virtual-number/on-net/claims/{identifier}`. Claims expire automatically for lookup and do not extend when repeated by the same owner. Distinct owners are rejected atomically with 409.
+
+This is a **single-owner prototype** under the gateway's one API_KEY. `VIRTUAL_ALIAS_OWNER_SCOPE` identifies that server-side tenant. It is not a substitute for independent user authentication, registration of subscribers, or VoIP routing. Carrier numbers, calls and messages remain unavailable. Mount a private writable directory for the SQLite path inside the read-only Docker container before enabling claims, restrict filesystem permissions and use an encrypted filesystem.

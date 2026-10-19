@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 from services.ai_studio.omni_orchestrator import _auth
+from services.virtual_number.store import ClaimConflict, configured_alias_store
 from services.virtual_number.vanity import (
     classify_alias, suggest_internal_aliases,
 )
@@ -65,3 +66,43 @@ def suggest(req: SuggestRequest, authorization: str | None = Header(default=None
         "carrier_checked": False,
         "numbers_reserved": False,
     }
+
+class ClaimRequest(BaseModel):
+    identifier: str = Field(min_length=3, max_length=30)
+    ttl_seconds: int = Field(default=3600, ge=60, le=86400)
+
+
+def _store():
+    try:
+        return configured_alias_store()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="On-net reservation storage not configured") from exc
+
+
+@router.post("/on-net/claim")
+def claim_onnet(req: ClaimRequest, authorization: str | None = Header(default=None)):
+    _auth(authorization)
+    store, owner = _store()
+    try:
+        return store.claim(req.identifier, owner_scope=owner, ttl_seconds=req.ttl_seconds)
+    except ClaimConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/on-net/claims")
+def onnet_claims(authorization: str | None = Header(default=None)):
+    _auth(authorization)
+    store, owner = _store()
+    return {"claims": store.list_claims(owner_scope=owner), "scope": "on_net_only"}
+
+
+@router.delete("/on-net/claims/{identifier}")
+def release_onnet(identifier: str, authorization: str | None = Header(default=None)):
+    _auth(authorization)
+    store, owner = _store()
+    try:
+        return {"released": store.release(identifier, owner_scope=owner)}
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
