@@ -93,7 +93,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('vs_understand_assets')),
         'asset_001');
-    await tester.testTextInput.hide();
+    tester.testTextInput.hide();
     await tester.pumpAndSettle();
     final rights = find.byKey(const Key('vs_understand_rights'));
     final paid = find.byKey(const Key('vs_understand_paid'));
