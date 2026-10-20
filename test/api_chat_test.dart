@@ -47,9 +47,9 @@ void main() {
       expect(request.headers.containsKey('Authorization'), isFalse);
       final json = jsonDecode(request.body) as Map;
       expect(json['model'], 'my-uncensored-gguf');
-      return http.Response(jsonEncode({
+      return http.Response.bytes(utf8.encode(jsonEncode({
         'choices': [{'message': {'content': 'Cześć z lokalnego modelu'}}],
-      }), 200);
+      })), 200);
     }));
     expect(await client.send(
       baseUrl: 'http://127.0.0.1:8080/v1', apiKey: '',
