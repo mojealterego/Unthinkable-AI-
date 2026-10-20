@@ -189,7 +189,7 @@ This is the 16-page website cloning document transformed into a buildable author
 
 ### VisionStory provider / Agent Integration (pending final owner's film UI)
 
-The source corpus is **6 received VisionStory PDFs / 34 pages**, with **≥60 additional files announced**. Studio UX is still open. These are **subpanels within existing VIDEO, AUDIO, AGENTS and EXT groups**, *not eight more independent top-level screens*.
+The source corpus tracked by the current register is **15 VisionStory PDFs / 98 pages** (VS-001–VS-015), with further files announced. Studio UX is still open. These are **subpanels within existing VIDEO, AUDIO, AGENTS and EXT groups**, *not eight more independent top-level screens*.
 
 | UI ID | Design area | Inputs, outputs and dependencies | Implementation |
 |---|---|---|---|
@@ -198,7 +198,7 @@ The source corpus is **6 received VisionStory PDFs / 34 pages**, with **≥60 ad
 | VIDEO-VS-AGENT-03 | Agent Skill/CLI/SDK | Supply-chain review, user-approved install, health check, model/credit read | Planned |
 | VIDEO-VS-AGENT-04 | AI agent film task | User prompt, source assets, model, explicit cost gate, retries, job progress | Planned |
 | VIDEO-VS-MEDIA-01 | Media understanding | 1–8 reference assets + object JSON Schema, prompt, cost, 180s timeout | Planned |
-| VIDEO-VS-MEDIA-02 | STT / SRT alignment | MP3/WAV, diarization, word timing, captions/export | Planned |
+| VIDEO-VS-MEDIA-02 | STT / SRT alignment | MP3/WAV, diarization, word timing, UTF-8 .srt export | Flutter + backend in repo; live provider test pending |
 | VIDEO-VS-AVATAR-01 | Avatar paginated catalog | Owned/public toggle, `next_cursor`, preview, create/select consented portrait | Read-only basic API, pagination planned |
 | VIDEO-VS-BILLING-01 | Usage and refund evidence | Credits, per-job `cost_credit`, refunds if provider confirms, prepaid budget | Partial API |
 
@@ -211,7 +211,7 @@ Detailed source-to-design matrix: `docs/VISIONSTORY_BATCH_02_AUDIT.md`; canonica
 - FILM-VS-JOBS-02 — filtrowanie queued / creating / created / failed i cursor dla AI video; widoczny limit współbieżności jako wynik zadań, nie gwarantowany wolny slot.
 - FILM-VS-MP4-01 — gotowe MP4, status archiwizacji i pobranie z operator-managed private volume; brak CDN/volume oznacza unavailable.
 - FILM-VS-MODEL-02 — profile zgodne z aktualnym katalogiem, nowe 720p/1080p/2k, historyczne 480p odczyt tylko; pricing rozdzielczości dopiero po podłączeniu cost API.
-- AUDIO-VS-STT-01 — napis SRT niezależny od diarization, eksport word timing oraz alignment. Funkcja jeszcze niezaimplementowana.
+- AUDIO-VS-STT-01 — SRT niezależne od diarization, word timing i alignment: backend + ekran Flutter + prywatny eksport pliku .srt; wymaga realnej weryfikacji na koncie dostawcy.
 
 To rozszerzenia istniejącej mapy ekranów, **nie** finalna osobna liczba ekranów. Źródła: VS-007–009; audyt docs/VISIONSTORY_BATCH_03_AUDIT.md; finalny wygląd dostarczy właściciel.
 
@@ -439,3 +439,25 @@ Przygotowane API i testy mock nie świadczą o pełnej produkcji filmu; UX „AP
 | F-VS-24 | Billing i błędy | 37100, concurrency limit, timeout, brak auto-retry, zużycie tokenów; **częściowo w backendzie** |
 
 Źródła i szczegóły w docs/VISIONSTORY_BATCH_05_AUDIT.md. Podwidoki nie zmieniają bez odrębnego przeglądu globalnego zestawienia 141 ekranów.
+
+
+### Aktualizacja statusu integracji VisionStory (21.10.2026)
+
+Ta tabela jest **bieżącą korektą starszych opisów „Plan” w poprzednich partiach**. Datowane audyty źródeł zachowują historyczny stan wiedzy w dniu opracowania.
+
+| Element dla UI | Źródło funkcji i działające pliki | Status do wizualizacji |
+|---|---|---|
+| Talking Avatar (text/audio) | services/visionstory/router.py; visionstory_screen.dart | Kod Flutter + backend; realny provider niezweryfikowany |
+| Generatywne klipy Seedance/Wan/Kling | production.py; visionstory_studio_screen.dart | Wycena, formularz, kolejka, status; dostępność wg live model API |
+| Kredyty i limity modelu | client.py; production.py | Odczyt i model-aware preflight; operator musi skonfigurować provider key |
+| Voice select i audio TTS | speech.py, visionstory_studio_screen.dart | Backend+Flutter; wyraźna zgoda na płatne wywołanie |
+| STT, SRT, forced align | speech.py i production.py; visionstory_studio_screen.dart | Funkcjonalne endpointy i UI; generowanie SRT i zapis .srt w katalogu aplikacji, testy offline |
+| Podgląd/archiwizacja/pobranie MP4 | archive.py; visionstory_screen.dart i visionstory_api.dart | API i UI; CDN allowlist, prawidłowy wolumen i tenant ACL nadal wymagane |
+| Media Understanding, 1–8 referencji | router.py; visionstory_understanding_screen.dart | Backend+Flutter; testy mock, brak konta live |
+| Avatar portrait, image and voice cloning | media_tools.py; visionstory_media_tools_screen.dart | Zgody i API; zewnętrzne wykonanie niepotwierdzone |
+| Ochrona ID płatnych zadań | jobs.py; visionstory_studio_screen.dart | Ledger SQLite + stan lokalny; brak produkcyjnej separacji tenantów |
+| Bezpieczeństwo przekierowań i quote mismatch | visionstory_gateway.dart i visionstory_studio_screen.dart | Kod ogranicza bearer redirects, JSON size i przestarzałą wycenę |
+| Zaawansowany NLE pełnometrażowy | lib/features/video/storyboard.dart | Montaż ujęć w edytorze wciąż nieprodukcyjny; shotlist/planner nie zastępuje renderera |
+| Provider account, rzeczywista transakcja, kompletne MCP 28 narzędzi | Sekrety/host dostarcza operator | **Zablokowane lub nieukończone**; nie reklamować jako działające |
+
+Finalny projekt UI i grafiki pozostają do dostarczenia przez właściciela. Program pozostaje otwarty na nowe materiały bez dopisywania „ukończone” z powodu samej obecności przycisku.
