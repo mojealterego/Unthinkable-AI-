@@ -3,6 +3,21 @@
 
 **Audience:** UI/UX designer preparing all screens before final visual asset handoff. This is a **navigation / interaction contract**, not a claim that every screen is coded. No missing-feature cards are allowed to masquerade as working functions.
 
+## Właściwa architektura produktu: nasz ekosystem BYOM
+
+**Podstawa Unthinkable AI**: modele własne (GGUF/safetensors, także Uncensored i Abliterated), własny runtime, własne projekty i narzędzia filmowe; tryb offline tam, gdzie obsługiwane są silnik i urządzenie. **Zewnętrzne platformy nie są wymagane** i nie stanowią domyślnej drogi wykonawczej.
+
+| ID UI | Ekran / podwidok | Integracja | Status |
+|---|---|---|---|
+| MODEL-BYOM-01 | Moje modele | Import GGUF/safetensors, SHA-256, etykieta Standard/Uncensored/Abliterated | Flutter: lokalne pliki i metadane |
+| MODEL-BYOM-02 | Przeznaczenie modelu | LLM, obraz, wideo, audio; kompatybilność z runtime | Flutter: profil / cel wyboru, runtime odrębnie |
+| MODEL-BYOM-03 | Mój silnik lokalny | localhost:8080 /v1, lista modeli GET /models, bez klucza | Flutter: nowy klient/ekran; wymaga rzeczywiście uruchomionego serwera |
+| MODEL-BYOM-04 | Czat Uncensored | Wybór GGUF i generacja przez llama.cpp-compatible /chat/completions | Flutter: klient API, bez dołączonego GGUF runtime |
+| MODEL-BYOM-05 | Własny serwer GPU | User-owned HTTPS z prywatnym tokenem, brak wysyłki do obcych platform | Flutter: API remote compatible |
+| MODEL-BYOM-06 | Zarządca silników / kompatybilności | llama.cpp / C++ FFI / image diffusion / video worker, diagnostyka RAM/Vulkan/QNN | Plan; engine natywny jeszcze nie dołączony |
+| FILM-BYOM-01 | Generowanie wideo własnym modelem | Wan/LTX/itp. o ile jest kompatybilny worker GPU | Plan, nie utożsamiać z VisionStory |
+| FILM-BYOM-02 | Montażownia / referencje / aktorzy | Własne zasoby i długometrażowy NLE, bez konta dostawcy | Plan / storyboard częściowo |
+
 ## Status legend
 - **UI+API** — tested Flutter entry/screen and a related usable API/local engine. External deployment or end-to-end provider integration can still be missing.
 - **UI** — Flutter/local prototype has concrete editing/storage/output. No full provider/native engine.

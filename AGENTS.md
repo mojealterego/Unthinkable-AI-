@@ -29,3 +29,15 @@ Systemowe wyniki każdej iteracji: zmienione pliki, SHA, testy, źródła, nieza
 8. Nie ogłaszaj zakończenia całego produktu, dopóki pełny audyt źródeł, integracja i odbiór nie są potwierdzone. Po każdej iteracji podawaj dokładne commity, testy CI, brakujące funkcje i blokady.
 
 Dla VisionStory szczegóły źródłowe i rozszerzenia znajdują się w `requirements/visionstory_sources.csv`, `docs/VISIONSTORY_BATCH_02_AUDIT.md` oraz `docs/UI_SCREEN_INTEGRATION_MASTER.md`. Dokumentacja jest otwarta — użytkownik zapowiedział co najmniej 60 kolejnych plików.
+
+
+## Product owner correction: LOCAL-FIRST / BYOM / UNCENSORED
+
+**The user owns the Unthinkable AI ecosystem. External vendors (VisionStory etc.) are references for feature requirements, NOT the platform's main production backend.**
+1. Primary offer: **Bring Your Own Model** — import user-owned GGUF and safetensors, select task class (LLM/image/video/audio), label Standard/Uncensored/Abliterated and run with the user's choice of locally installed or self-hosted engines, respecting the individual checkpoint license.
+2. No external vendor account, token, credits or subscription may be a prerequisite for basic app operation or using supported local models. No default external API or upload. A vendor adapter is separately opt-in, not an app core dependency; do not divert product development toward provider account setup.
+3. The default chat target is an on-device loopback llama.cpp-compatible HTTP server without credentials. Remote user-owned inference is opt-in and TLS-authenticated. Do not confuse file import with having a working native inference runtime.
+4. Own inference architecture targets: Android native runtime where technically supported, user-controlled workstation/cloud GPU for large diffusion/video models, secure model registry/provenance/quantization, offline files and projects. No hidden remote execution. Vendor-provided public APIs are auxiliary and not evidence that Unthinkable runs those model weights.
+5. Model profile is metadata for selection and UI; it must not misrepresent actual model internals. Treat uncensored/abliterated as technically supported user model variants, not as a guarantee of unlimited output. Follow age and legal protections.
+6. When reading third-party docs, extract **capabilities, workflows and UX requirements**, implement independently in the Unthinkable product using owned/self-hosted components whenever possible, and clearly label capabilities still blocked on local engine/GPU/codec.
+7. UI roadmap priority: My Models > Local Chat > Image Generation > Film Studio > Audio > Builders, then optional external adapters.

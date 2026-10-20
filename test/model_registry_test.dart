@@ -25,6 +25,31 @@ void main() {
     expect(restored.single.capabilities, {ModelCapability.image});
   });
 
+
+  test('BYOM uncensored GGUF is registered as a text model', () async {
+    final prefs = await SharedPreferences.getInstance();
+    final registry = ModelRegistry(prefs);
+    await registry.add(const ModelManifest(
+      id: 'local-gguf', displayName: 'My Uncensored Model',
+      format: ModelFormat.gguf, capabilities: {ModelCapability.text},
+      profile: ModelProfile.uncensored, modelPath: '/models/my.gguf',
+    ));
+    final saved = ModelRegistry(prefs).list().single;
+    expect(saved.profile, ModelProfile.uncensored);
+    expect(saved.capabilities, {ModelCapability.text});
+  });
+
+  test('Old registry records without a profile remain readable', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(ModelRegistry.storageKey,
+      '[{"id":"old","displayName":"Old GGUF",'
+      '"format":"gguf","capabilities":["image"],'
+      '"modelPath":"/models/old.gguf"}]');
+    final old = ModelRegistry(prefs).list().single;
+    expect(old.profile, ModelProfile.standard);
+    expect(old.capabilities, {ModelCapability.image});
+  });
+
   test('upsert avoids duplicate model ids', () async {
     final prefs = await SharedPreferences.getInstance();
     final registry = ModelRegistry(prefs);

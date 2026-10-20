@@ -222,7 +222,7 @@ class DomainScreen extends StatelessWidget {
               MaterialPageRoute<void>(builder: (_) => const ModelLibraryScreen()),
             ),
             icon: const Icon(Icons.inventory_2_outlined),
-            label: const Text('Biblioteka i import modeli ODYN'),
+            label: const Text('Moje modele • Uncensored • GGUF'),
           ),
         ],
         if (domain.code == 'MODELS') ...[
@@ -232,7 +232,7 @@ class DomainScreen extends StatelessWidget {
               MaterialPageRoute<void>(builder: (_) => const ApiChatScreen()),
             ),
             icon: const Icon(Icons.chat_outlined),
-            label: const Text('Otwórz czat API'),
+            label: const Text('Czat lokalny — mój model'),
           ),
         ],
         if (domain.code == 'VIDEO') ...[
