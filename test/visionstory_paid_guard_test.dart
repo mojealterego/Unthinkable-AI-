@@ -145,6 +145,10 @@ void main() {
     await tester.tap(find.byKey(const Key('visionstory_quote')));
     await tester.pump();
     // Text editors remain usable during backend quote retrieval.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('visionstory_clip_prompt')),
+      -150, scrollable: list, maxScrolls: 20,
+    );
     await tester.ensureVisible(find.byKey(const Key('visionstory_clip_prompt')));
     await tester.enterText(find.byKey(const Key('visionstory_clip_prompt')),
         'Zmieniony opis klipu');
@@ -154,6 +158,10 @@ void main() {
     expect(find.textContaining('Parametry ujęcia zmieniły się podczas wyceny'),
         findsOneWidget);
     expect(find.text('Wycena: 7 kredytów'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('visionstory_submit_clip')),
+      160, scrollable: list, maxScrolls: 20,
+    );
     final submit = tester.widget<FilledButton>(
         find.byKey(const Key('visionstory_submit_clip')));
     expect(submit.onPressed, isNull);
