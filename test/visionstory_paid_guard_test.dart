@@ -28,10 +28,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // The long form is lazily built: scroll the actual vertical editor.
-    final editorScroll = find.byWidgetPredicate(
-      (widget) => widget is Scrollable &&
-          widget.axisDirection == AxisDirection.down,
-    ).last;
+    final editorScroll = find.descendant(
+      of: find.byType(ListView).last,
+      matching: find.byType(Scrollable),
+    ).first;
     await tester.scrollUntilVisible(
       find.byKey(const Key('visionstory_submit_avatar')),
       220,
