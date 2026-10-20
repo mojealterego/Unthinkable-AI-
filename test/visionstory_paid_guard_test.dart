@@ -28,10 +28,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // The long form is lazily built: scroll the actual vertical editor.
-    final editorScroll = find.ancestor(
-      of: find.text('Generowanie klipów z referencjami'),
-      matching: find.byType(Scrollable),
-    ).first;
+    final editorScroll = find.byWidgetPredicate(
+      (widget) => widget is Scrollable &&
+          widget.axisDirection == AxisDirection.down,
+    ).last;
     await tester.scrollUntilVisible(
       find.byKey(const Key('visionstory_submit_avatar')),
       220,
