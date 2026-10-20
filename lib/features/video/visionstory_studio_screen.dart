@@ -34,6 +34,10 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   Map<String, dynamic>? transcript;
   int? quote;
   String? quoteId;
+  String? avatarRequestId;
+  // An earlier paid POST can finish after a network timeout.
+  // Require an explicit new-job decision rather than accidentally rebilling.
+  bool clipAttempted = false, avatarAttempted = false;
   String? error, notice;
   bool busy = false, rights = false, paid = false, srt = true, diarize = false;
   List<int>? audioData;
@@ -125,7 +129,14 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     };
   }
 
-  Future<void> estimate() => run(() async {
+  Future<void> estimate() async {
+    if (clipAttempted) {
+      setState(() => error =
+        'Zlecenie mogło już zostać opłacone. Sprawdź jego status; '
+        'nową wycenę uruchom po świadomym rozpoczęciu nowego zlecenia.');
+      return;
+    }
+    await run(() async {
     quote = null;
     quoteId = null;
     final data = await post('ai-video/estimate', clipBody());
@@ -133,7 +144,8 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     if (value is! int || value <= 0) throw const FormatException('Błędna wycena.');
     if (!mounted) return;
     setState(() { quote = value; notice = 'Cena ujęcia: ' + value.toString() + ' kredytów.'; });
-  });
+    });
+  }
 
   Future<bool> confirm(String title, String body) async {
     if (!mounted) return false;
@@ -151,6 +163,15 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   }
 
   Future<void> generateClip() async {
+    if (clipAttempted) {
+      setState(() => error = 'Zlecenie mogło już obciążyć konto. '
+          'Sprawdź status zamiast wysyłać je ponownie.');
+      return;
+    }
+    if (quote == null || quote! <= 0) {
+      setState(() => error = 'Najpierw pobierz wycenę aktualnego ujęcia.');
+      return;
+    }
     if (!rights || !paid) {
       setState(() => error = 'Zaznacz prawa do materiałów i zgodę na wydanie kredytów.');
       return;
@@ -158,7 +179,8 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     final accepted = await confirm('Płatne generowanie klipu',
       'Wyślij zlecenie za maksymalnie ' + (quote ?? 0).toString() +
       ' kredytów? Wynik otrzyma własny identyfikator zadania.');
-    if (!accepted) return;
+    if (!accepted || !mounted) return;
+    setState(() => clipAttempted = true);
     await run(() async {
       final data = await post('ai-video', clipBody(submit: true));
       if (!mounted) return;
@@ -171,20 +193,29 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   }
 
   Future<void> generateAvatarVideo() async {
+    if (avatarAttempted) {
+      setState(() => error = 'Awatar mógł już zostać rozliczony. '
+          'Sprawdź poprzednie zadanie przed nową generacją.');
+      return;
+    }
     if (!rights || !paid) {
       setState(() => error = 'Potwierdź prawa i zgodę na kredyty.');
       return;
     }
     final accepted = await confirm('Płatny film z awatarem',
       'Utworzyć film na podstawie scenariusza? Usługa może zużyć kredyty.');
-    if (!accepted) return;
+    if (!accepted || !mounted) return;
+    setState(() {
+      avatarRequestId ??= 'avatar_' + DateTime.now().microsecondsSinceEpoch.toString();
+      avatarAttempted = true;
+    });
     await run(() async {
       final data = await post('talking-video', {
         'model_id': avatarModel.text.trim(),
         'avatar_id': avatarId.text.trim(),
         'voice_id': voiceId.text.trim(),
         'text': script.text,
-        'client_request_id': 'avatar_' + DateTime.now().microsecondsSinceEpoch.toString(),
+        'client_request_id': avatarRequestId!,
         'approved_for_paid_generation': true,
       });
       if (!mounted) return;
@@ -193,6 +224,25 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
         videoId.text = (data['video_id'] ?? '').toString();
         notice = 'Zadanie awatara zostało przyjęte.';
       });
+    });
+  }
+
+  Future<void> startNewPaidJobs() async {
+    if (busy) return;
+    final accepted = await confirm(
+      'Nowe płatne zlecenie?',
+      'Poprzednie mogło się udać nawet po błędzie połączenia. '
+      'Sprawdź jego status i koszty. Nowe ID może zużyć kolejne kredyty.',
+    );
+    if (!accepted || !mounted) return;
+    setState(() {
+      quote = null;
+      quoteId = null;
+      avatarRequestId = null;
+      clipAttempted = false;
+      avatarAttempted = false;
+      error = null;
+      notice = 'Możesz wycenić i rozpocząć nowe zadanie.';
     });
   }
 
@@ -357,11 +407,12 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
             _field('visionstory_clip_prompt', videoPrompt, 'Opis klipu / sceny', maxLines: 3),
             _field('visionstory_clip_ref', referenceAsset, 'ID zdjęcia referencyjnego (opcjonalnie)'),
             FilledButton(key: const Key('visionstory_quote'),
-              onPressed: busy ? null : estimate, child: const Text('Oblicz koszt u dostawcy')),
+              onPressed: busy || clipAttempted ? null : estimate,
+               child: const Text('Oblicz koszt u dostawcy')),
             if (quote != null) Text('Wycena: ' + quote.toString() + ' kredytów'),
             _permissions(),
             FilledButton(key: const Key('visionstory_submit_clip'),
-              onPressed: busy || quote == null ? null : generateClip,
+              onPressed: busy || quote == null || clipAttempted ? null : generateClip,
               child: const Text('Zatwierdź i generuj klip')),
             const Divider(height: 36),
             Text('Mówiący awatar', style: Theme.of(context).textTheme.titleLarge),
@@ -370,9 +421,16 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
             _field('visionstory_voice_id', voiceId, 'ID głosu'),
             _field('visionstory_script', script, 'Tekst do wypowiedzenia', maxLines: 3),
             OutlinedButton(key: const Key('visionstory_submit_avatar'),
-              onPressed: busy ? null : generateAvatarVideo,
+              onPressed: busy || avatarAttempted ? null : generateAvatarVideo,
               child: const Text('Zatwierdź i generuj mówiący film')),
             const Divider(height: 36),
+            if (clipAttempted || avatarAttempted)
+              OutlinedButton.icon(
+                key: const Key('visionstory_new_paid_job'),
+                onPressed: busy ? null : startNewPaidJobs,
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('Nowe płatne zlecenie (sprawdź wcześniejsze)'),
+              ),
             Text('Zadania', style: Theme.of(context).textTheme.titleLarge),
             _field('visionstory_video_id', videoId, 'ID otrzymanego zadania'),
             Row(children: [
