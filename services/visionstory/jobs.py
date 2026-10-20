@@ -151,7 +151,10 @@ class JobLedger:
 
 def configured_ledger() -> JobLedger | None:
     path = os.getenv("VISIONSTORY_JOB_DB_PATH", "").strip()
-    required = os.getenv("VISIONSTORY_REQUIRE_DURABLE_JOBS", "0").strip() == "1"
+    # A real configured provider account must never submit billable jobs without
+    # durable idempotency storage. Keep mock-only/offline development unchanged.
+    required = (os.getenv("VISIONSTORY_REQUIRE_DURABLE_JOBS", "0").strip() == "1"
+                or bool(os.getenv("VISIONSTORY_API_KEY", "").strip()))
     if not path:
         if required:
             raise VisionStoryError("Durable VisionStory job database is required", 503)
