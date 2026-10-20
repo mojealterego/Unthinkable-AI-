@@ -79,7 +79,8 @@ class PortraitAvatarInput(BaseModel):
 class FrameInput(BaseModel):
     avatar_id: str = Field(min_length=3, max_length=160, pattern=r"^[a-zA-Z0-9_-]+$")
     aspect_ratio: Literal["9:16", "16:9", "1:1"]
-    zoom: float = Field(ge=1, le=4)
+    # The vendor, not this app, determines max_zoom based on source dimensions.
+    zoom: float = Field(ge=1, allow_inf_nan=False)
     offset_x: float = Field(ge=-1, le=1)
     offset_y: float = Field(ge=-1, le=1)
     confirmed_framing_change: bool = False
