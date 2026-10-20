@@ -35,6 +35,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   Map<String, dynamic>? transcript;
   int? quote;
   String? quoteId;
+  String? quotedClipParameters;
   String? avatarRequestId;
   // An earlier paid POST can finish after a network timeout.
   // Require an explicit new-job decision rather than accidentally rebilling.
@@ -151,6 +152,18 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     }
   }
 
+  // A paid approval is valid only for the exact parameters used for the
+  // provider quote, never for a subsequently edited prompt or reference.
+  String currentClipParameters() => jsonEncode({
+    'model_id': aiModel.text.trim(),
+    'prompt': videoPrompt.text.trim(),
+    'duration_sec': 8,
+    'resolution': '720p',
+    'aspect_ratio': '9:16',
+    'generate_audio': true,
+    'reference_asset_id': referenceAsset.text.trim(),
+  });
+
   Map<String, Object?> clipBody({bool submit = false}) {
     if (aiModel.text.trim().isEmpty || videoPrompt.text.trim().isEmpty) {
       throw const FormatException('Wybierz model z katalogu i podaj opis ujęcia.');
@@ -183,11 +196,27 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     await run(() async {
     quote = null;
     quoteId = null;
-    final data = await post('ai-video/estimate', clipBody());
+    quotedClipParameters = null;
+    final estimatedParameters = currentClipParameters();
+    final estimatedBody = clipBody();
+    final data = await post('ai-video/estimate', estimatedBody);
     final value = data['credits_estimated'];
     if (value is! int || value <= 0) throw const FormatException('Błędna wycena.');
     if (!mounted) return;
-    setState(() { quote = value; notice = 'Cena ujęcia: ' + value.toString() + ' kredytów.'; });
+    if (currentClipParameters() != estimatedParameters) {
+      setState(() {
+        quote = null;
+        quoteId = null;
+        quotedClipParameters = null;
+        error = 'Parametry ujęcia zmieniły się podczas wyceny. Oblicz cenę ponownie.';
+      });
+      return;
+    }
+    setState(() {
+      quote = value;
+      quotedClipParameters = estimatedParameters;
+      notice = 'Cena ujęcia: ' + value.toString() + ' kredytów.';
+    });
     });
   }
 
@@ -213,8 +242,14 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
           'Sprawdź status zamiast wysyłać je ponownie.');
       return;
     }
-    if (quote == null || quote! <= 0) {
-      setState(() => error = 'Najpierw pobierz wycenę aktualnego ujęcia.');
+    if (quote == null || quote! <= 0 ||
+        quotedClipParameters != currentClipParameters()) {
+      setState(() {
+        quote = null;
+        quoteId = null;
+        quotedClipParameters = null;
+        error = 'Parametry różnią się od wyceny. Oblicz aktualny koszt.';
+      });
       return;
     }
     if (!rights || !paid) {
@@ -229,6 +264,10 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     await run(() async {
       // Persist the stable ID *before* calling the potentially paid provider.
       await _persistPaidState();
+      if (quotedClipParameters != currentClipParameters()) {
+        throw const FormatException(
+          'Parametry zmieniły się po zatwierdzeniu kosztu. Wstrzymano zlecenie.');
+      }
       final data = await post('ai-video', clipBody(submit: true));
       if (!mounted) return;
       setState(() {
@@ -287,6 +326,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     setState(() {
       quote = null;
       quoteId = null;
+      quotedClipParameters = null;
       avatarRequestId = null;
       clipAttempted = false;
       avatarAttempted = false;
@@ -440,7 +480,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
                       avatarModel.text = (item['model_id'] ?? '').toString();
                     } else if (group.$1 == 'Modele klipów AI') {
                       aiModel.text = (item['model_id'] ?? '').toString();
-                      quote = null; quoteId = null;
+                      quote = null; quoteId = null; quotedClipParameters = null;
                     } else if (group.$1 == 'Awatary') {
                       avatarId.text = (item['avatar_id'] ?? '').toString();
                     } else {
@@ -459,10 +499,12 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
             FilledButton(key: const Key('visionstory_quote'),
               onPressed: busy || paidStateLoading || clipAttempted ? null : estimate,
                child: const Text('Oblicz koszt u dostawcy')),
-            if (quote != null) Text('Wycena: ' + quote.toString() + ' kredytów'),
+            if (quote != null && quotedClipParameters == currentClipParameters())
+              Text('Wycena: ' + quote.toString() + ' kredytów'),
             _permissions(),
             FilledButton(key: const Key('visionstory_submit_clip'),
-              onPressed: busy || paidStateLoading || quote == null || clipAttempted ? null : generateClip,
+              onPressed: busy || paidStateLoading || quote == null || clipAttempted ||
+                  quotedClipParameters != currentClipParameters() ? null : generateClip,
               child: const Text('Zatwierdź i generuj klip')),
             const Divider(height: 36),
             Text('Mówiący awatar', style: Theme.of(context).textTheme.titleLarge),
@@ -547,7 +589,13 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
       key: Key(id), controller: controller, maxLines: maxLines,
       onChanged: (_) {
         if (id == 'visionstory_clip_model' || id == 'visionstory_clip_prompt' ||
-            id == 'visionstory_clip_ref') setState(() { quote = null; quoteId = null; });
+            id == 'visionstory_clip_ref') {
+          setState(() {
+            quote = null;
+            quoteId = null;
+            quotedClipParameters = null;
+          });
+        }
       },
       decoration: InputDecoration(
         labelText: label, border: const OutlineInputBorder()),
