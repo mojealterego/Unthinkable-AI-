@@ -410,3 +410,20 @@ To rozszerzenia istniejącej mapy ekranów, **nie** finalna osobna liczba ekran�
 - Website source PDF is a **reference design**; copying server databases without privileged owner access is not technically established. Public page analysis and consented migration are separate workflows.
 - As of 2026-10-19, Android GitHub Actions run [39257970067](https://github.com/mojealterego/Unthinkable-AI-/actions/runs/39257970067) succeeded for current main at initial inventory review. This does not certify production readiness of each feature.
 - Every planned external connector requires capability verification, licensing, secrets/scopes, cost estimates and runnable acceptance tests. No hidden side-effect, no unauthorized service access.
+
+
+
+### VisionStory VS-010–VS-012 — podwidoki awatara, głosu i Advanced Cinema
+
+Trzy dokumenty / 22 strony, źródła w \`requirements/visionstory_sources.csv\`, analiza strona po stronie \`docs/VISIONSTORY_BATCH_04_AUDIT.md\`. Z uwagi na istniejące wcześniej ekrany i rozwiązania są to **podwidoki** w FILM/AUDIO/ASSETS, a nie osobne globalne ekrany bez konsultacji:
+
+- \`F-VS-13\` Create Avatar: portrait JPEG/PNG/WEBP/HEIC (10 MB), zgoda osoby, galeria owned/public, live avatar ID/default voice ID.
+- \`F-VS-14\` Avatar Framing: niezależne 9:16, 16:9, 1:1, zoom/offset, preview, fallback \`framing_unavailable\`, \`max_zoom\` i nowe zdjęcie.
+- \`F-VS-15\` Voice Clone Pro: BCP-47, provider, nagranie jednego mówcy, preview, voice ID, zgody, limit planu; wsparcie 30 MB wymaga streamingu.
+- \`F-VS-16\` AI Video Generator model sheet: Seedance/Wan/Kling; oddzielne pola first_frame/end_frame/refs, audio, ratio, duration i rozdzielczość dynamicznie z discovery.
+- \`F-VS-17\` Media reference catalog: image/video/audio asset_id, przypisanie rodzaju, limits, reuse, przepływ crop/import.
+- \`F-VS-18\` Quote+consent: quote z model+seconds+resolution, pozostałe kredyty, dozwolony koszt maksymalny, jawne potwierdzenie.
+- \`F-VS-19\` Multi-job Monitor: do 20 \`video_ids\`, polling 5–10 s, 429 concurrency, queued/creating/created/failed i same-ID retry.
+- \`F-VS-20\` Final MP4 Library: archiwizacja zanim link wygaśnie; stan pobrania i przekazanie do NLE.
+
+Przygotowane API i testy mock nie świadczą o pełnej produkcji filmu; UX „API key missing / no plan / quota / model unavailable” jest wymagany.

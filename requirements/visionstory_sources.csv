@@ -8,3 +8,6 @@ id,filename,pages,sha256,scope
 "VS-007","VisionStory API Changelog.pdf","5","2306a47c3479cc2966bf430a15da92ea00616b6278de720112881b350f73e0f1","v0.0.4–v0.0.13; voice locale/provider paging, AI video status filters, model limitations"
 "VS-008","VisionStory API Overview2.pdf","4","7f3f8968ac4fcc10d4dcdb8d7217637246fe0870a9855c418d65c1fe81ff0058","Text-identical on all 4 pages to VS-004; separate source ID without duplicate requirements"
 "VS-009","Talking Avatar Video API Quickstart — VisionStory.pdf","7","c657a79a344d91fc24c6cdcce318c5a0728dc48418eadb5030048f18532db6cd","5-step avatar workflow and 7-day video retention; server MP4 archiving"
+"VS-010","AI Avatar API — VisionStory.pdf","5","959fc5edb4134c3864d15c3e46b040bd2263930ba22a9be7b55fdd87c31f5e2a","Portrait avatar create, owned/public pagination, custom framing, no destructive deletes"
+"VS-011","Voice Cloning API — VisionStory.PDF","5","0b7c825bf3b3fcf48dfb1554d5934f3b2249dad71d089405e17713055a8efd05","Clone voice 30MB, locale/provider paging, voice preview and avatar voice change"
+"VS-012","AI Video Generation API — VisionStory.PDF","12","c4cbc08d70d0366faddbcfa4ab13c3276eaf11f3f4b8dc1d1e490d95d42d37ff","Seedance/Wan/Kling, model restrictions, assets, exact quote, batch polling, concurrency and refunds"

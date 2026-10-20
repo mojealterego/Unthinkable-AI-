@@ -1,4 +1,4 @@
-# VisionStory: audyt 9 dokumentów źródłowych (50 stron; dokumentacja otwarta)
+# VisionStory: audyt 12 dokumentów źródłowych (72 strony; dokumentacja otwarta)
 
 Data: 2026-10-19. Dokumenty przekazane przez właściciela aplikacji:
 
@@ -77,3 +77,7 @@ To rejestr techniczny po przyrostowej implementacji; oznaczenie kodu nie jest po
 Wyniki zweryfikowane: [Backend CI 39339602721](https://github.com/mojealterego/Unthinkable-AI-/actions/runs/39339602721) SUCCESS; [Flutter Android CI 39340324150](https://github.com/mojealterego/Unthinkable-AI-/actions/runs/39340324150) SUCCESS dla wcześniejszej wersji ekranu. Nowszy build Flutter nadal wymaga końcowego potwierdzenia przed akceptacją. Brak dowodu renderowania na koncie użytkownika i brak użycia płatnych kredytów.
 
 **Nie przyjmować kolejnej partii dokumentów jako zamknięcia zakresu, dopóki te pozycje MISSING i PARTIAL nie zostaną rozstrzygnięte i przetestowane.**
+
+## Partia IV: VS-010–VS-012
+
+Szczegółowa analiza **22 stron**, identyfikatory funkcji, stany kodu, dodatkowe wymagania model-specific, katalog referencji i lista podwidoków F-VS-13..20: [VISIONSTORY_BATCH_04_AUDIT.md](VISIONSTORY_BATCH_04_AUDIT.md). Wykaz dokumentów zawiera 12 pozycji, razem 72 strony; następny numer VS-013.
