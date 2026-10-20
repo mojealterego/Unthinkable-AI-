@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'visionstory_gateway.dart';
 
@@ -37,7 +38,8 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   String? avatarRequestId;
   // An earlier paid POST can finish after a network timeout.
   // Require an explicit new-job decision rather than accidentally rebilling.
-  bool clipAttempted = false, avatarAttempted = false;
+  bool clipAttempted = false, avatarAttempted = false, paidStateLoading = true;
+  static const _sessionKey = 'unthinkable.visionstory.advanced.paid';
   String? error, notice;
   bool busy = false, rights = false, paid = false, srt = true, diarize = false;
   List<int>? audioData;
@@ -47,6 +49,47 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   void initState() {
     super.initState();
     api = widget.gateway ?? VisionStoryGateway();
+    _restorePaidState();
+  }
+
+  Future<void> _restorePaidState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      setState(() {
+        clipAttempted = prefs.getBool(_sessionKey + '.clip') ?? false;
+        avatarAttempted = prefs.getBool(_sessionKey + '.avatar') ?? false;
+        quoteId = prefs.getString(_sessionKey + '.clipId');
+        avatarRequestId = prefs.getString(_sessionKey + '.avatarId');
+        paidStateLoading = false;
+      });
+    } on Object {
+      if (!mounted) return;
+      // Fail closed: without reliable request-ID recovery we cannot safely
+      // start another billable operation.
+      setState(() {
+        clipAttempted = true;
+        avatarAttempted = true;
+        paidStateLoading = false;
+        error = 'Nie udało się odczytać historii płatnych zleceń.';
+      });
+    }
+  }
+
+  Future<void> _persistPaidState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_sessionKey + '.clip', clipAttempted);
+    await prefs.setBool(_sessionKey + '.avatar', avatarAttempted);
+    if (quoteId != null) {
+      await prefs.setString(_sessionKey + '.clipId', quoteId!);
+    } else {
+      await prefs.remove(_sessionKey + '.clipId');
+    }
+    if (avatarRequestId != null) {
+      await prefs.setString(_sessionKey + '.avatarId', avatarRequestId!);
+    } else {
+      await prefs.remove(_sessionKey + '.avatarId');
+    }
   }
 
   @override void dispose() {
@@ -130,6 +173,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   }
 
   Future<void> estimate() async {
+    if (paidStateLoading) return;
     if (clipAttempted) {
       setState(() => error =
         'Zlecenie mogło już zostać opłacone. Sprawdź jego status; '
@@ -163,6 +207,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   }
 
   Future<void> generateClip() async {
+    if (paidStateLoading) return;
     if (clipAttempted) {
       setState(() => error = 'Zlecenie mogło już obciążyć konto. '
           'Sprawdź status zamiast wysyłać je ponownie.');
@@ -182,6 +227,8 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     if (!accepted || !mounted) return;
     setState(() => clipAttempted = true);
     await run(() async {
+      // Persist the stable ID *before* calling the potentially paid provider.
+      await _persistPaidState();
       final data = await post('ai-video', clipBody(submit: true));
       if (!mounted) return;
       setState(() {
@@ -193,6 +240,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   }
 
   Future<void> generateAvatarVideo() async {
+    if (paidStateLoading) return;
     if (avatarAttempted) {
       setState(() => error = 'Awatar mógł już zostać rozliczony. '
           'Sprawdź poprzednie zadanie przed nową generacją.');
@@ -210,6 +258,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
       avatarAttempted = true;
     });
     await run(() async {
+      await _persistPaidState();
       final data = await post('talking-video', {
         'model_id': avatarModel.text.trim(),
         'avatar_id': avatarId.text.trim(),
@@ -228,7 +277,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
   }
 
   Future<void> startNewPaidJobs() async {
-    if (busy) return;
+    if (busy || paidStateLoading) return;
     final accepted = await confirm(
       'Nowe płatne zlecenie?',
       'Poprzednie mogło się udać nawet po błędzie połączenia. '
@@ -244,6 +293,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
       error = null;
       notice = 'Możesz wycenić i rozpocząć nowe zadanie.';
     });
+    await _persistPaidState();
   }
 
   Future<void> checkJob({bool aiVideo = true}) => run(() async {
@@ -407,12 +457,12 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
             _field('visionstory_clip_prompt', videoPrompt, 'Opis klipu / sceny', maxLines: 3),
             _field('visionstory_clip_ref', referenceAsset, 'ID zdjęcia referencyjnego (opcjonalnie)'),
             FilledButton(key: const Key('visionstory_quote'),
-              onPressed: busy || clipAttempted ? null : estimate,
+              onPressed: busy || paidStateLoading || clipAttempted ? null : estimate,
                child: const Text('Oblicz koszt u dostawcy')),
             if (quote != null) Text('Wycena: ' + quote.toString() + ' kredytów'),
             _permissions(),
             FilledButton(key: const Key('visionstory_submit_clip'),
-              onPressed: busy || quote == null || clipAttempted ? null : generateClip,
+              onPressed: busy || paidStateLoading || quote == null || clipAttempted ? null : generateClip,
               child: const Text('Zatwierdź i generuj klip')),
             const Divider(height: 36),
             Text('Mówiący awatar', style: Theme.of(context).textTheme.titleLarge),
@@ -421,7 +471,7 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
             _field('visionstory_voice_id', voiceId, 'ID głosu'),
             _field('visionstory_script', script, 'Tekst do wypowiedzenia', maxLines: 3),
             OutlinedButton(key: const Key('visionstory_submit_avatar'),
-              onPressed: busy || avatarAttempted ? null : generateAvatarVideo,
+              onPressed: busy || paidStateLoading || avatarAttempted ? null : generateAvatarVideo,
               child: const Text('Zatwierdź i generuj mówiący film')),
             const Divider(height: 36),
             if (clipAttempted || avatarAttempted)
