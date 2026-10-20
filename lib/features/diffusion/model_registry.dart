@@ -52,6 +52,7 @@ class ModelRegistry {
     'vaePath': model.vaePath,
     'textEncoderPath': model.textEncoderPath,
     'sha256': model.sha256,
+    'profile': model.profile.name,
   };
 
   static ModelManifest _fromJson(dynamic data) {
@@ -67,6 +68,7 @@ class ModelRegistry {
       vaePath: data['vaePath'] as String?,
       textEncoderPath: data['textEncoderPath'] as String?,
       sha256: data['sha256'] as String?,
+      profile: ModelProfile.values.byName(data['profile'] as String? ?? 'standard'),
     );
     if (model.validate().isNotEmpty) throw const FormatException('Invalid model');
     return model;

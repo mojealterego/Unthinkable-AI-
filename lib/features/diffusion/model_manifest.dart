@@ -1,5 +1,8 @@
-enum ModelCapability { image, video, imageEdit }
+enum ModelCapability { image, video, imageEdit, text, audio }
 enum ModelFormat { gguf, safetensors, qnn }
+
+/// Descriptive model profile, not a switch to bypass platform safeguards.
+enum ModelProfile { standard, uncensored, abliterated }
 
 class ModelManifest {
   const ModelManifest({
@@ -11,6 +14,7 @@ class ModelManifest {
     this.vaePath,
     this.textEncoderPath,
     this.sha256,
+    this.profile = ModelProfile.standard,
   });
 
   final String id;
@@ -21,6 +25,7 @@ class ModelManifest {
   final String? vaePath;
   final String? textEncoderPath;
   final String? sha256;
+  final ModelProfile profile;
 
   List<String> validate() {
     final errors = <String>[];

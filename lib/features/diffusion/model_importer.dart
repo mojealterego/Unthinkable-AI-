@@ -11,7 +11,8 @@ class ModelImporter {
   ModelImporter(this.registry);
   final ModelRegistry registry;
 
-  Future<ModelManifest?> pickAndImport() async {
+  Future<ModelManifest?> pickAndImport({ModelCapability? capability,
+      ModelProfile profile = ModelProfile.standard}) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['gguf', 'safetensors'],
@@ -20,10 +21,12 @@ class ModelImporter {
     if (result == null || result.files.isEmpty) return null;
     final picked = result.files.single;
     if (picked.path == null) throw const FileSystemException('File picker returned no readable path');
-    return importFile(File(picked.path!), displayName: picked.name);
+    return importFile(File(picked.path!), displayName: picked.name,
+        capability: capability, profile: profile);
   }
 
-  Future<ModelManifest> importFile(File source, {required String displayName}) async {
+  Future<ModelManifest> importFile(File source, {required String displayName,
+      ModelCapability? capability, ModelProfile profile = ModelProfile.standard}) async {
     final extension = displayName.toLowerCase().split('.').last;
     if (extension != 'gguf' && extension != 'safetensors') {
       throw const FormatException('Unsupported model extension');
@@ -50,7 +53,11 @@ class ModelImporter {
         id: id,
         displayName: displayName,
         format: extension == 'gguf' ? ModelFormat.gguf : ModelFormat.safetensors,
-        capabilities: {ModelCapability.image},
+        // GGUF is commonly a text LLM format but can also carry diffusion weights.
+        // The explicit user choice takes precedence; file extension alone is not proof.
+        capabilities: {capability ?? (extension == 'gguf'
+          ? ModelCapability.text : ModelCapability.image)},
+        profile: profile,
         modelPath: target.path,
         sha256: digest,
       );

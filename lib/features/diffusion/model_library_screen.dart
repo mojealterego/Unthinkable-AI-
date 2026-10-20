@@ -18,6 +18,8 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
   List<ModelManifest> models = const [];
   bool busy = false;
   bool? nativeAvailable;
+  ModelCapability selectedCapability = ModelCapability.text;
+  ModelProfile selectedProfile = ModelProfile.standard;
 
   Future<void> _checkNative() async {
     if (busy) return;
@@ -49,7 +51,8 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
     if (busy || importer == null) return;
     setState(() => busy = true);
     try {
-      final model = await importer!.pickAndImport();
+      final model = await importer!.pickAndImport(
+        capability: selectedCapability, profile: selectedProfile);
       if (!mounted) return;
       setState(() => models = registry!.list());
       if (model != null) ScaffoldMessenger.of(context).showSnackBar(
@@ -99,10 +102,11 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Biblioteka modeli ODYN')),
+    appBar: AppBar(title: const Text('Moje modele — Unthinkable AI')),
     body: ListView(padding: const EdgeInsets.all(16), children: [
-      const Text('Import GGUF lub safetensors i zapis metadanych. '
-        'Silnik natywnej generacji obrazu/wideo nie jest jeszcze podłączony.'),
+      const Text('Własne modele GGUF i safetensors: także Uncensored i Abliterated. '
+          'Import działa offline, bez kont zewnętrznych. '
+          'Wybór profilu to etykieta modelu, nie dowód zgodności silnika.'),
       const SizedBox(height: 14),
       OutlinedButton(
         key: const Key('check_native_engine'),
@@ -114,6 +118,32 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
           ? 'Silnik natywny zgłasza gotowość (wymaga testu urządzenia).'
           : 'Brak silnika natywnego. Nie jest dostępne lokalne generowanie.'),
       const SizedBox(height: 14),
+      DropdownButtonFormField<ModelCapability>(
+        key: const Key('model_capability'),
+        value: selectedCapability,
+        decoration: const InputDecoration(labelText: 'Zastosowanie modelu'),
+        items: const [
+          DropdownMenuItem(value: ModelCapability.text, child: Text('Czat / LLM')),
+          DropdownMenuItem(value: ModelCapability.image, child: Text('Obrazy')),
+          DropdownMenuItem(value: ModelCapability.video, child: Text('Wideo')),
+          DropdownMenuItem(value: ModelCapability.audio, child: Text('Audio')),
+        ],
+        onChanged: busy ? null : (v) => setState(() =>
+          selectedCapability = v ?? ModelCapability.text),
+      ),
+      DropdownButtonFormField<ModelProfile>(
+        key: const Key('model_profile'),
+        value: selectedProfile,
+        decoration: const InputDecoration(labelText: 'Profil modelu'),
+        items: const [
+          DropdownMenuItem(value: ModelProfile.standard, child: Text('Standard')),
+          DropdownMenuItem(value: ModelProfile.uncensored, child: Text('Uncensored')),
+          DropdownMenuItem(value: ModelProfile.abliterated, child: Text('Abliterated')),
+        ],
+        onChanged: busy ? null : (v) => setState(() =>
+          selectedProfile = v ?? ModelProfile.standard),
+      ),
+      const SizedBox(height: 12),
       FilledButton.icon(
         key: const Key('import_model'),
         onPressed: busy || importer == null ? null : _import,
@@ -125,7 +155,7 @@ class _ModelLibraryScreenState extends State<ModelLibraryScreen> {
       for (final model in models)
         ListTile(
           title: Text(model.displayName),
-          subtitle: Text('${model.format.name} • ${model.modelPath}'),
+          subtitle: Text('${model.format.name} • ${model.capabilities.map((e) => e.name).join(', ')} • ${model.profile.name}'),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             IconButton(
               tooltip: 'Zweryfikuj SHA-256',
