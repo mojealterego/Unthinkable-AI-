@@ -96,7 +96,26 @@ class VisionStoryRest:
                 if exc.code in (401, 403):
                     raise VisionStoryError("VisionStory rejected the server-side API credentials", 424) from exc
                 if exc.code == 429:
-                    raise VisionStoryError("VisionStory rate limit reached", 429) from exc
+                    # Vendor concurrency errors contain details as an object OR
+                    # JSON-encoded string, while generic rate-limit errors may omit it.
+                    message = "VisionStory rate limit reached; do not auto-retry paid submissions"
+                    try:
+                        body = json.loads(exc.read(16_384).decode("utf-8"))
+                        err = body.get("error", {}) if isinstance(body, dict) else {}
+                        details = err.get("details") if isinstance(err, dict) else None
+                        if isinstance(details, str):
+                            details = json.loads(details)
+                        if isinstance(details, dict):
+                            limit = details.get("limit")
+                            active = details.get("in_flight")
+                            if (type(limit) is int and 0 < limit < 100_000 and
+                                type(active) is int and 0 <= active < 100_000):
+                                message = ("VisionStory concurrency limit reached: "
+                                           f"{active} in flight, limit {limit}. "
+                                           "Retry only with the same client_request_id")
+                    except (ValueError, UnicodeError, TypeError, AttributeError):
+                        pass
+                    raise VisionStoryError(message, 429) from exc
                 raise VisionStoryError("VisionStory API returned an error", 502) from exc
             except (urllib.error.URLError, TimeoutError, UnicodeDecodeError, ValueError) as exc:
                 raise VisionStoryError("VisionStory API is unavailable or returned invalid JSON") from exc
@@ -215,6 +234,16 @@ class VisionStoryRest:
     def ai_video_status(self, video_id: str) -> dict:
         return self.request("GET", "/api/v1/ai_video?video_id=" +
                             urllib.parse.quote(video_id, safe=""))
+
+    def ai_video_batch_status(self, video_ids: list[str]) -> dict:
+        """Read at most 20 jobs per request; the provider returns data.videos."""
+        import re
+        if (not isinstance(video_ids, list) or not 1 <= len(video_ids) <= 20 or
+            any(not isinstance(v, str) or not re.fullmatch(r"[A-Za-z0-9_-]{3,160}", v)
+                for v in video_ids) or len(set(video_ids)) != len(video_ids)):
+            raise ValueError("Provide 1–20 distinct, valid VisionStory video IDs")
+        return self.request("GET", "/api/v1/ai_video?" +
+                            urllib.parse.urlencode({"video_ids": ",".join(video_ids)}))
 
     def synthesize_mp3(self, payload: dict) -> tuple[bytes, dict]:
         """Vendor TTS is binary audio/mpeg, NOT a JSON envelope.
