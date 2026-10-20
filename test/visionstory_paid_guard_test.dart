@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +74,24 @@ void main() {
     expect(prefs.getString('unthinkable.visionstory.advanced.paid.clipId'), isNull);
     expect(outbound, 0);
   });
+  test('Local VisionStory SRT export writes UTF-8 and rejects empty tracks',
+      () async {
+    final directory = await Directory.systemTemp.createTemp('visionstory-srt-');
+    addTearDown(() => directory.delete(recursive: true));
+    const content = '1\n00:00:00,000 --> 00:00:01,000\nZażółć gęślą\n';
+    final stored = await saveVisionStorySrt(content, directory: directory);
+    expect(stored.path.endsWith('.srt'), true);
+    expect(await stored.readAsString(), content);
+    await expectLater(
+      saveVisionStorySrt('', directory: directory),
+      throwsFormatException,
+    );
+    await expectLater(
+      saveVisionStorySrt('x' * (1024 * 1024 + 1), directory: directory),
+      throwsFormatException,
+    );
+  });
+
   test('VisionStory gateway does not forward bearer tokens through redirects', () async {
     var requests = 0;
     final client = VisionStoryGateway(client: MockClient((request) async {
