@@ -1,4 +1,5 @@
 import 'visionstory_studio_screen.dart';
+import 'visionstory_media_tools_screen.dart';
 import 'visionstory_screen.dart';
 import 'production_planner.dart';
 import 'dart:convert';
@@ -274,6 +275,15 @@ class _FilmStudioScreenState extends State<FilmStudioScreen> {
                   ),
                   icon: const Icon(Icons.auto_awesome_outlined),
                   label: const Text('VisionStory: generatywne wideo'),
+                ),
+                OutlinedButton.icon(
+                  key: const Key('open_visionstory_media_tools'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) =>
+                      const VisionStoryMediaToolsScreen()),
+                  ),
+                  icon: const Icon(Icons.face_retouching_natural),
+                  label: const Text('VisionStory: awatary, głosy i obrazy'),
                 ),
                 OutlinedButton(onPressed: _export, child: const Text('Eksport JSON')),
                 OutlinedButton(onPressed: _import, child: const Text('Import JSON')),
