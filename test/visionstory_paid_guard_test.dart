@@ -49,6 +49,11 @@ void main() {
       maxScrolls: 30,
     );
     final resetButton = find.byKey(const Key('visionstory_new_paid_job'));
+    // Flutter scrollUntilVisible can stop with the button partly beneath the
+    // screen's lower edge. Move it into the real tappable viewport.
+    await tester.ensureVisible(resetButton);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -160));
+    await tester.pumpAndSettle();
     expect(resetButton, findsOneWidget);
     expect(outbound, 0);
 
