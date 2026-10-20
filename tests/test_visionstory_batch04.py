@@ -146,5 +146,43 @@ class Batch04(unittest.TestCase):
                     self.assertIn("in flight", str(cm.exception))
                     self.assertNotIn("fake-test-secret", str(cm.exception))
 
+    def test_avatar_zoom_over_four_uses_provider_limit(self):
+        def avatar_provider(method, path, body):
+            if method == "GET" and path == "/api/v1/avatars":
+                return {"data": {"avatars": [{"avatar_id": "owned_avatar_1"}]}}
+            if method == "POST" and path == "/api/v1/avatar/framing":
+                return {"data": {"avatar_id": body["avatar_id"], "zoom": body["zoom"]}}
+            raise AssertionError(path)
+        with patch("services.visionstory.media_tools.configured_client",
+                   return_value=VisionStoryRest("test-secret", transport=avatar_provider)):
+            result=self.http.post(PREFIX + "/avatars/framing",
+                headers=HEADERS,
+                json={"avatar_id":"owned_avatar_1","aspect_ratio":"9:16",
+                      "zoom":6.5,"offset_x":0,"offset_y":0,
+                      "confirmed_framing_change":True})
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual(result.json()["zoom"], 6.5)
+
+    def test_provider_max_zoom_error_is_actionable_but_sanitized(self):
+        for detail, expected in (({"max_zoom": 3.25}, "max_zoom=3.25"),
+                                 ({"max_zoom": None}, "larger portrait")):
+            class Opener:
+                def open(self, request, timeout):
+                    payload=json.dumps({"error":{"details": detail}}).encode()
+                    raise HTTPError(request.full_url, 400, "Bad framing", {},
+                                    io.BytesIO(payload))
+            with self.subTest(detail=detail):
+                with patch("services.visionstory.client.urllib.request.build_opener",
+                           return_value=Opener()):
+                    client=VisionStoryRest("sensitive-api-key")
+                    with self.assertRaises(VisionStoryError) as cm:
+                        client.request("POST", "/api/v1/avatar/framing", {
+                            "avatar_id":"owned_avatar_1","aspect_ratio":"9:16",
+                            "zoom":10,"offset_x":0,"offset_y":0,
+                        })
+                self.assertEqual(cm.exception.status, 422)
+                self.assertIn(expected, str(cm.exception))
+                self.assertNotIn("sensitive-api-key", str(cm.exception))
+
 if __name__ == "__main__":
     unittest.main()
