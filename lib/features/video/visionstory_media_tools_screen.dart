@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'visionstory_gateway.dart';
+import 'visionstory_understanding_screen.dart';
 
 /// Connected provider tools. Final artwork/UI will be provided by the owner.
 /// Provider secrets never enter the app. All external uploads require consent.
@@ -321,6 +322,17 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
   ]);
 
   Widget assetsTab() => ListView(padding: const EdgeInsets.all(12), children: [
+    OutlinedButton.icon(
+      key: const Key('visionstory_media_understanding'),
+      onPressed: busy ? null : () => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => VisionStoryUnderstandingScreen(
+          initialServer: host.text, initialGatewayKey: key.text,
+        )),
+      ),
+      icon: const Icon(Icons.document_scanner_outlined),
+      label: const Text('Analiza mediów do JSON (1–8 zasobów)'),
+    ),
+    const Text('Analiza może zużywać kredyty i wymaga osobnego zatwierdzenia.'),
     OutlinedButton(key: const Key('visionstory_assets_refresh'),
       onPressed: busy ? null : assets, child: const Text('Pobierz zasoby z VisionStory')),
     Wrap(spacing: 8, children: [fileButton('image'), fileButton('audio')]),
