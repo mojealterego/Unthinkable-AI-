@@ -89,6 +89,23 @@ class JobLedgerTests(unittest.TestCase):
             with self.assertRaises(VisionStoryError):
                 configured_ledger()
 
+    def test_real_provider_key_requires_durable_ledger_even_if_optional_flag_is_off(self):
+        # Do not run billable requests if only the real provider key is present.
+        with patch.dict(os.environ, {
+            "VISIONSTORY_API_KEY": "private-test-placeholder",
+            "VISIONSTORY_REQUIRE_DURABLE_JOBS": "0",
+            "VISIONSTORY_JOB_DB_PATH": "",
+        }):
+            with self.assertRaisesRegex(VisionStoryError, "Durable VisionStory"):
+                configured_ledger()
+
+        with patch.dict(os.environ, {
+            "VISIONSTORY_API_KEY": "private-test-placeholder",
+            "VISIONSTORY_REQUIRE_DURABLE_JOBS": "0",
+            "VISIONSTORY_JOB_DB_PATH": self.path,
+        }):
+            self.assertIsInstance(configured_ledger(), JobLedger)
+
     def test_gateway_reuses_existing_provider_video_without_second_charge(self):
         provider = Provider()
         with patch.dict(os.environ, {
