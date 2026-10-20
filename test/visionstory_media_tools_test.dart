@@ -79,9 +79,25 @@ void main() {
     expect(find.byKey(const Key('visionstory_create_avatar')), findsOneWidget);
     await tester.tap(find.text('Głosy').first);
     await tester.pumpAndSettle();
+    final voiceScroll = find.ancestor(
+      of: find.text('Klonowanie głosu wymaga zgody jego właściciela'),
+      matching: find.byType(Scrollable),
+    ).first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('visionstory_clone_voice')), 200,
+      scrollable: voiceScroll, maxScrolls: 15,
+    );
     expect(find.byKey(const Key('visionstory_clone_voice')), findsOneWidget);
     await tester.tap(find.text('Obrazy').first);
     await tester.pumpAndSettle();
+    final imageScroll = find.ancestor(
+      of: find.text('Dostępność modeli i ceny są zależne od Twojego konta.'),
+      matching: find.byType(Scrollable),
+    ).first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('visionstory_generate_image')), 200,
+      scrollable: imageScroll, maxScrolls: 20,
+    );
     expect(find.byKey(const Key('visionstory_generate_image')), findsOneWidget);
     await tester.tap(find.text('Zasoby').first);
     await tester.pumpAndSettle();
