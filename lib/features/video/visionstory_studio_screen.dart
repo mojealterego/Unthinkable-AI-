@@ -272,7 +272,8 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     await run(() async {
       final bytes = await api.makeMp3(
         server: server.text, key: key.text,
-        voiceId: voiceId.text.trim(), text: script.text);
+        voiceId: voiceId.text.trim(), text: script.text,
+        approved: paid, rights: rights);
       final folder = await getApplicationDocumentsDirectory();
       final output = File(folder.path + '/visionstory-' +
         DateTime.now().millisecondsSinceEpoch.toString() + '.mp3');

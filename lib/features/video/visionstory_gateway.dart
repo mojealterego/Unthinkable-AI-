@@ -79,8 +79,12 @@ class VisionStoryGateway {
 
   Future<List<int>> makeMp3({
     required String server, required String key,
-    required String text, required String voiceId, String locale = 'pl-PL',
+    required String text, required String voiceId,
+    required bool approved, required bool rights, String locale = 'pl-PL',
   }) async {
+    if (!approved || !rights) {
+      throw const FormatException('Wymagane potwierdzenie praw do głosu i kosztu.');
+    }
     if (text.trim().isEmpty || voiceId.trim().isEmpty) {
       throw const FormatException('Wpisz tekst oraz istniejący identyfikator głosu.');
     }
@@ -90,8 +94,8 @@ class VisionStoryGateway {
         'text': text,
         'voice_id': voiceId,
         'locale': locale,
-        'confirmed_voice_rights': true,
-        'approved_for_paid_generation': true,
+        'confirmed_voice_rights': rights,
+        'approved_for_paid_generation': approved,
       },
     );
     if (reply.statusCode != 200) {
