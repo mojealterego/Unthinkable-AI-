@@ -70,35 +70,30 @@ void main() {
     client.close();
   });
 
-  testWidgets('Media studio contains consented Avatar, Voice, Image and Asset panels', (tester) async {
+  testWidgets('Media studio contains consented Avatar, Voice, Image and Asset panels',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(const MaterialApp(home: VisionStoryMediaToolsScreen()));
     await tester.pumpAndSettle();
     expect(find.text('VisionStory — Awatary i multimedia'), findsOneWidget);
     expect(find.byKey(const Key('vs_media_host')), findsOneWidget);
     expect(find.byKey(const Key('vs_media_key')), findsOneWidget);
     expect(find.byKey(const Key('visionstory_create_avatar')), findsOneWidget);
+
     await tester.tap(find.text('Głosy').first);
     await tester.pumpAndSettle();
-    final voiceScroll = find.ancestor(
-      of: find.text('Klonowanie głosu wymaga zgody jego właściciela'),
-      matching: find.byType(Scrollable),
-    ).first;
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('visionstory_clone_voice')), 200,
-      scrollable: voiceScroll, maxScrolls: 15,
-    );
+    expect(find.text('Klonowanie głosu wymaga zgody jego właściciela'), findsOneWidget);
     expect(find.byKey(const Key('visionstory_clone_voice')), findsOneWidget);
+
     await tester.tap(find.text('Obrazy').first);
     await tester.pumpAndSettle();
-    final imageScroll = find.ancestor(
-      of: find.text('Dostępność modeli i ceny są zależne od Twojego konta.'),
-      matching: find.byType(Scrollable),
-    ).first;
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('visionstory_generate_image')), 200,
-      scrollable: imageScroll, maxScrolls: 20,
-    );
+    expect(find.text('Dostępność modeli i ceny są zależne od Twojego konta.'), findsOneWidget);
     expect(find.byKey(const Key('visionstory_generate_image')), findsOneWidget);
+
     await tester.tap(find.text('Zasoby').first);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('visionstory_assets_refresh')), findsOneWidget);
