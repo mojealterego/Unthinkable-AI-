@@ -25,6 +25,10 @@ jobs:
           cache: true
       - name: Initialize generated Android native project
         run: flutter create --project-name unthinkable_ai --platforms android .
+      - name: Enable local GGUF loopback only (Android network policy)
+        run: |
+          python tools/configure_android_local_runtime.py --project .
+          python -m unittest tests.test_android_local_runtime -v
       - name: Use Android API 36 required by Flutter plugins
         run: |
           test -f android/app/build.gradle.kts
