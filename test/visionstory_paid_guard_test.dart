@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -71,4 +73,92 @@ void main() {
     expect(prefs.getString('unthinkable.visionstory.advanced.paid.clipId'), isNull);
     expect(outbound, 0);
   });
+  test('VisionStory gateway does not forward bearer tokens through redirects', () async {
+    var requests = 0;
+    final client = VisionStoryGateway(client: MockClient((request) async {
+      requests++;
+      expect(request.url.toString(),
+          'https://studio.example/api/cinema/visionstory/credits');
+      expect(request.headers['Authorization'], 'Bearer secret-gateway');
+      expect(request.followRedirects, false);
+      expect(request.maxRedirects, 0);
+      return http.Response('', 302, headers: {
+        'location': 'https://another.example/steal-token',
+      });
+    }));
+    await expectLater(
+      client.call(server: 'https://studio.example',
+          key: 'secret-gateway', path: 'credits'),
+      throwsA(isA<VisionStoryGatewayError>()),
+    );
+    expect(requests, 1);
+    client.close();
+  });
+
+  test('VisionStory JSON responses larger than three MiB are rejected', () async {
+    final client = VisionStoryGateway(client: MockClient((request) async {
+      return http.Response('x' * (3 * 1024 * 1024 + 1), 200);
+    }));
+    await expectLater(
+      client.call(server: 'https://studio.example',
+          key: 'gateway-key', path: 'credits'),
+      throwsA(isA<VisionStoryGatewayError>()),
+    );
+    client.close();
+  });
+
+  testWidgets('Changing the clip prompt while quote is in flight invalidates it',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final quoteReply = Completer<http.Response>();
+    var paidPosts = 0;
+    final client = VisionStoryGateway(client: MockClient((request) async {
+      if (request.url.path.endsWith('/ai-video/estimate')) return quoteReply.future;
+      if (request.url.path.endsWith('/ai-video')) paidPosts++;
+      return http.Response('{"error":"unexpected request"}', 500);
+    }));
+    await tester.pumpWidget(
+        MaterialApp(home: VisionStoryStudioScreen(gateway: client)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Prywatny backend HTTPS'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('visionstory_url')),
+        'https://studio.example');
+    await tester.enterText(find.byKey(const Key('visionstory_gateway_key')),
+        'gateway-key');
+    await tester.tap(find.text('Wideo'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('visionstory_clip_model')),
+        'seedance-2.0');
+    await tester.enterText(find.byKey(const Key('visionstory_clip_prompt')),
+        'Pierwszy opis klipu');
+    final list = find.descendant(
+      of: find.byType(ListView).last,
+      matching: find.byType(Scrollable),
+    ).first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('visionstory_quote')),
+      150, scrollable: list, maxScrolls: 20,
+    );
+    await tester.ensureVisible(find.byKey(const Key('visionstory_quote')));
+    await tester.tap(find.byKey(const Key('visionstory_quote')));
+    await tester.pump();
+    // Text editors remain usable during backend quote retrieval.
+    await tester.ensureVisible(find.byKey(const Key('visionstory_clip_prompt')));
+    await tester.enterText(find.byKey(const Key('visionstory_clip_prompt')),
+        'Zmieniony opis klipu');
+    await tester.pump();
+    quoteReply.complete(http.Response('{"credits_estimated":7}', 200));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Parametry ujęcia zmieniły się podczas wyceny'),
+        findsOneWidget);
+    expect(find.text('Wycena: 7 kredytów'), findsNothing);
+    final submit = tester.widget<FilledButton>(
+        find.byKey(const Key('visionstory_submit_clip')));
+    expect(submit.onPressed, isNull);
+    expect(paidPosts, 0);
+    client.close();
+  });
+
 }
