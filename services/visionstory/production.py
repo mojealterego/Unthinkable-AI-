@@ -232,6 +232,61 @@ def _validate_provider_model(client, req: ClipInput) -> None:
         if type(maximum) is not int or len(req.refs) > maximum:
             raise VisionStoryError("Reference quantity not supported by model", 422)
 
+    # Model-specific restrictions documented by VisionStory. Validate before
+    # estimating credits or initiating a paid provider operation.
+    if req.model_id.startswith("wan-") and req.refs and req.aspect_ratio is not None:
+        raise VisionStoryError("Wan refs cannot be combined with explicit aspect_ratio", 422)
+    if req.model_id == "kling-3.0":
+        if req.refs:
+            raise VisionStoryError("Kling 3.0 does not accept refs", 422)
+        if req.first_frame is not None and req.aspect_ratio is not None:
+            raise VisionStoryError("Kling image-to-video forbids explicit aspect_ratio", 422)
+    if req.model_id == "kling-3.0-omni":
+        if req.first_frame is not None:
+            raise VisionStoryError("Kling Omni cannot use first_frame", 422)
+        if req.refs and req.generate_audio:
+            # Provider forbids generate_audio when references include video.
+            # Check directly identified inline video; asset_id kinds must be
+            # verified using the owner's library rather than guessed.
+            inline_video = any(
+                x.inline_data is not None and
+                x.inline_data.mime_type.startswith("video/") for x in req.refs
+            )
+            asset_ids = {
+                x.asset_id for x in req.refs if x.asset_id is not None
+            }
+            found = {}
+            if asset_ids:
+                cursor = 0
+                for _ in range(30):
+                    query = "limit=100&cursor=" + str(cursor)
+                    page = client.request("GET", "/api/v1/assets?" + query)
+                    assets = page.get("assets")
+                    if not isinstance(assets, list):
+                        raise VisionStoryError("Cannot verify the reference asset kinds", 424)
+                    for item in assets:
+                        if isinstance(item, dict) and item.get("asset_id") in asset_ids:
+                            found[item["asset_id"]] = item.get("kind")
+                    if len(found) == len(asset_ids):
+                        break
+                    cursor = page.get("next_cursor", 0)
+                    if type(cursor) is not int or cursor <= 0:
+                        break
+                if len(found) != len(asset_ids) or any(
+                    k not in {"image", "video", "audio"} for k in found.values()
+                ):
+                    raise VisionStoryError("Unverified reference asset kinds", 422)
+            if inline_video or "video" in found.values():
+                raise VisionStoryError(
+                    "Kling Omni video references require generate_audio=false", 422
+                )
+    if req.first_frame is not None:
+        # A model may advertise no image-to-video support. Absent capability
+        # metadata: fail closed rather than risk a paid provider rejection.
+        image_to_video = model.get("image_to_video")
+        if image_to_video is False:
+            raise VisionStoryError("Selected model cannot accept first_frame", 422)
+
 
 def _cost(client, req: ClipInput) -> int:
     quote = client.ai_video_cost(
@@ -318,6 +373,53 @@ def submit_video(req: ClipInput, authorization: str | None = Header(default=None
             "durable_job_ledger": ledger is not None,
         }
     return _paid(submit)
+
+
+class VideoBatchRequest(BaseModel):
+    video_ids: list[str] = Field(min_length=1, max_length=20)
+
+
+@router.post("/ai-video/batch-status")
+def ai_video_batch_status(
+    req: VideoBatchRequest, authorization: str | None = Header(default=None)
+):
+    """Read-only batch polling. Up to twenty provider jobs per call."""
+    _auth(authorization)
+    if (any(not isinstance(v, str) or not re.fullmatch(
+        r"[A-Za-z0-9_-]{3,160}", v) for v in req.video_ids) or
+        len(set(req.video_ids)) != len(req.video_ids)):
+        raise HTTPException(status_code=422, detail="Invalid or repeated video IDs")
+
+    def query():
+        result = configured_client().ai_video_batch_status(req.video_ids)
+        videos = result.get("videos")
+        if not isinstance(videos, list) or len(videos) > 20:
+            raise VisionStoryError("Invalid batch status response from provider")
+        cleaned = []
+        expected = set(req.video_ids)
+        for video in videos:
+            if not isinstance(video, dict) or video.get("video_id") not in expected:
+                raise VisionStoryError("Unexpected provider video ID in batch response")
+            status = video.get("status")
+            if status == "success":
+                status = "created"
+            if status not in _STATUS:
+                raise VisionStoryError("Unexpected provider video job status")
+            url = video.get("video_url")
+            if url is not None and (
+                not isinstance(url, str) or not url.startswith("https://")
+            ):
+                raise VisionStoryError("Invalid provider media URL")
+            cleaned.append({
+                "video_id": video["video_id"],
+                "status": status,
+                "video_url": url if status == "created" else None,
+                "cost_credit": video.get("cost_credit"),
+                "error": video.get("error") if status == "failed" else None,
+            })
+        return {"videos": cleaned, "poll_after_seconds": 5,
+                "provider": "visionstory", "paid_generation_started": False}
+    return _paid(query)
 
 
 @router.get("/ai-video/{video_id}")
