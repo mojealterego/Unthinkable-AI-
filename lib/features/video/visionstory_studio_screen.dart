@@ -9,6 +9,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'visionstory_gateway.dart';
 
+/// Save a completed, user-approved subtitle track into app-private storage.
+/// This operation is local: it neither contacts VisionStory nor spends credits.
+Future<File> saveVisionStorySrt(String subtitles, {Directory? directory}) async {
+  if (subtitles.trim().isEmpty) {
+    throw const FormatException('Brak napisów SRT do zapisania.');
+  }
+  if (utf8.encode(subtitles).length > 1024 * 1024) {
+    throw const FormatException('Napisy SRT przekraczają limit 1 MiB.');
+  }
+  final folder = directory ?? await getApplicationDocumentsDirectory();
+  if (!await folder.exists()) {
+    throw const FormatException('Magazyn napisów jest niedostępny.');
+  }
+  final filename = 'visionstory-subtitles-' +
+      DateTime.now().microsecondsSinceEpoch.toString() + '.srt';
+  final output = File(folder.path + Platform.pathSeparator + filename);
+  return output.writeAsString(subtitles, encoding: utf8, flush: true);
+}
+
 /// Working integration UI, pending the owner's final film-studio visual design.
 /// All purchases must be explicitly confirmed; keys are never persisted.
 class VisionStoryStudioScreen extends StatefulWidget {
@@ -402,6 +421,16 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
     });
   }
 
+  Future<void> saveSrt() => run(() async {
+    final raw = transcript?['srt'];
+    if (raw is! String || raw.trim().isEmpty) {
+      throw const FormatException('Najpierw wygeneruj napisy SRT.');
+    }
+    final file = await saveVisionStorySrt(raw);
+    if (mounted) setState(() => notice =
+      'Plik napisów zapisano w prywatnej pamięci aplikacji: ' + file.path);
+  });
+
   Future<void> generateSpeech() async {
     if (!rights || !paid) {
       setState(() => error = 'Potwierdź prawa do głosu i zgodę na kredyty.');
@@ -567,6 +596,13 @@ class _VisionStoryStudioScreenState extends State<VisionStoryStudioScreen> {
                   onPressed: () => Clipboard.setData(
                     ClipboardData(text: transcript!['srt'] as String)),
                   child: const Text('Kopiuj SRT'),
+                ),
+              if (transcript!['srt'] is String)
+                FilledButton.icon(
+                  key: const Key('visionstory_save_srt'),
+                  onPressed: busy ? null : saveSrt,
+                  icon: const Icon(Icons.save_alt),
+                  label: const Text('Zapisz plik SRT'),
                 ),
             ],
             const Divider(height: 28),
