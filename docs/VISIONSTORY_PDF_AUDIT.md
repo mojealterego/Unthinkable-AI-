@@ -1,4 +1,4 @@
-# VisionStory: audyt 12 dokumentów źródłowych (72 strony; dokumentacja otwarta)
+# VisionStory: audyt 15 dokumentów źródłowych (98 stron; dokumentacja otwarta)
 
 Data: 2026-10-19. Dokumenty przekazane przez właściciela aplikacji:
 
@@ -81,3 +81,7 @@ Wyniki zweryfikowane: [Backend CI 39339602721](https://github.com/mojealterego/U
 ## Partia IV: VS-010–VS-012
 
 Szczegółowa analiza **22 stron**, identyfikatory funkcji, stany kodu, dodatkowe wymagania model-specific, katalog referencji i lista podwidoków F-VS-13..20: [VISIONSTORY_BATCH_04_AUDIT.md](VISIONSTORY_BATCH_04_AUDIT.md). Wykaz dokumentów zawiera 12 pozycji, razem 72 strony; następny numer VS-013.
+
+## Partia V — VS-013–VS-015
+
+Audyt 26 stron (4 + 13 + 9), pliki z SHA-256, mapowanie do funkcji i UI: [VISIONSTORY_BATCH_05_AUDIT.md](VISIONSTORY_BATCH_05_AUDIT.md). VS-015 jest angielskim odpowiednikiem/rozszerzeniem wcześniejszego VS-006, nie powiela implementacji. Łącznie 15 dokumentów i 98 stron; następny VS-016.

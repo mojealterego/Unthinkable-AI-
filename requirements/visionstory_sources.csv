@@ -11,3 +11,6 @@ id,filename,pages,sha256,scope
 "VS-010","AI Avatar API — VisionStory.pdf","5","959fc5edb4134c3864d15c3e46b040bd2263930ba22a9be7b55fdd87c31f5e2a","Portrait avatar create, owned/public pagination, custom framing, no destructive deletes"
 "VS-011","Voice Cloning API — VisionStory.PDF","5","0b7c825bf3b3fcf48dfb1554d5934f3b2249dad71d089405e17713055a8efd05","Clone voice 30MB, locale/provider paging, voice preview and avatar voice change"
 "VS-012","AI Video Generation API — VisionStory.PDF","12","c4cbc08d70d0366faddbcfa4ab13c3276eaf11f3f4b8dc1d1e490d95d42d37ff","Seedance/Wan/Kling, model restrictions, assets, exact quote, batch polling, concurrency and refunds"
+"VS-013","Structured Media Understanding API — VisionStory.PDF","4","28666d57b854809bbc37ed2ef786122842eff8b9655cb5bb03398fd1775e96a7","Media understanding 1-8 inputs, schema, credits, Flutter form, local/remote MCP"
+"VS-014","VisionStory CLI.PDF","13","51c421539d0ca5a00a925a48b8502aeb377b51bbfded316b532d6b55ee42339c","CLI install doctor contract read-only credits, API/SDK tool surface"
+"VS-015","VisionStory API for AI Agents(1).PDF","9","070e1d8131dcc46817c8691f525e04c7f6073fb1d73b515e51708812d102933b","English counterpart and extension to VS-006, MCP local remote Skill 28 operations claim"

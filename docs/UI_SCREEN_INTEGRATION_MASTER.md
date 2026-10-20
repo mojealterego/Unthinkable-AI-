@@ -427,3 +427,15 @@ Trzy dokumenty / 22 strony, źródła w \`requirements/visionstory_sources.csv\`
 - \`F-VS-20\` Final MP4 Library: archiwizacja zanim link wygaśnie; stan pobrania i przekazanie do NLE.
 
 Przygotowane API i testy mock nie świadczą o pełnej produkcji filmu; UX „API key missing / no plan / quota / model unavailable” jest wymagany.
+
+
+### VisionStory V: integracje i podwidoki na podstawie VS-013–VS-015
+
+| ID | Podwidok | Wymagania i stan |
+|---|---|---|
+| F-VS-21 | Analiza multimediów | 1–8 asset_id, prompt, JSON schema, rights/cost approval, output/usage; **kod Flutter i backend** |
+| F-VS-22 | VisionStory CLI Health | doctor, contract i opcjonalne credits, bez ujawniania klucza; **skrypt operatora** |
+| F-VS-23 | MCP/Agent Skill | local inline vs remote URL/asset_id, 28-operations z OpenAPI, audyt źródła; **brak uruchomienia MCP** |
+| F-VS-24 | Billing i błędy | 37100, concurrency limit, timeout, brak auto-retry, zużycie tokenów; **częściowo w backendzie** |
+
+Źródła i szczegóły w docs/VISIONSTORY_BATCH_05_AUDIT.md. Podwidoki nie zmieniają bez odrębnego przeglądu globalnego zestawienia 141 ekranów.
