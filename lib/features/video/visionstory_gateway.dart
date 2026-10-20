@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -42,11 +43,41 @@ class VisionStoryGateway {
     final uri = endpoint(server, path);
     final h = headers(key);
     if (binary) h['Accept'] = 'audio/mpeg';
+    // Never forward the gateway bearer token through an HTTP redirect,
+    // including redirects to a different TLS hostname.
+    final request = http.Request(body == null ? 'GET' : 'POST', uri)
+      ..followRedirects = false
+      ..maxRedirects = 0;
+    request.headers.addAll(h);
+    if (body != null) request.body = jsonEncode(body);
+
+    Future<http.Response> perform() async {
+      final streamed = await _http.send(request);
+      const maxJsonBytes = 3 * 1024 * 1024;
+      const maxAudioBytes = 20 * 1024 * 1024;
+      final maximum = binary ? maxAudioBytes : maxJsonBytes;
+      final collected = BytesBuilder(copy: false);
+      await for (final chunk in streamed.stream) {
+        if (collected.length + chunk.length > maximum) {
+          throw const VisionStoryGatewayError(
+            'Odpowiedź serwera przekroczyła dozwolony rozmiar.');
+        }
+        collected.add(chunk);
+      }
+      if (streamed.statusCode >= 300 && streamed.statusCode < 400) {
+        throw const VisionStoryGatewayError(
+          'Przekierowanie serwera z danymi uwierzytelnienia jest zablokowane.');
+      }
+      return http.Response.bytes(
+        collected.takeBytes(), streamed.statusCode,
+        headers: streamed.headers, request: request,
+      );
+    }
+
     try {
-      return await (body == null
-          ? _http.get(uri, headers: h)
-          : _http.post(uri, headers: h, body: jsonEncode(body)))
-          .timeout(Duration(seconds: body == null ? 25 : 210));
+      // Bound the whole response body, not just the initial connection.
+      return await perform().timeout(
+        Duration(seconds: body == null ? 25 : 210));
     } on TimeoutException {
       throw const VisionStoryGatewayError(
         'Przekroczono czas oczekiwania. Nie ponawiaj automatycznie płatnego zlecenia.');
