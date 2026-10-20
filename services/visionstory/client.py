@@ -93,6 +93,28 @@ class VisionStoryRest:
                     raise VisionStoryError("VisionStory response exceeded the safety limit")
                 response = json.loads(raw.decode("utf-8"))
             except urllib.error.HTTPError as exc:
+                if exc.code == 400 and path == "/api/v1/avatar/framing":
+                    # Preserve the provider's safe, actionable crop limit.
+                    # Never surface arbitrary upstream HTML or secret-bearing data.
+                    message = "Avatar framing rejected; check image dimensions"
+                    try:
+                        body = json.loads(exc.read(16_384).decode("utf-8"))
+                        err = body.get("error", {}) if isinstance(body, dict) else {}
+                        details = err.get("details") if isinstance(err, dict) else None
+                        if isinstance(details, str):
+                            details = json.loads(details)
+                        if isinstance(details, dict) and "max_zoom" in details:
+                            limit = details["max_zoom"]
+                            if limit is None:
+                                message = ("Framing unavailable for this aspect ratio; "
+                                           "upload a larger portrait")
+                            elif type(limit) in (int, float) and (
+                                1 <= limit <= 10000
+                            ):
+                                message = f"Avatar crop exceeds max_zoom={limit:g}"
+                    except (ValueError, UnicodeError, TypeError, AttributeError):
+                        pass
+                    raise VisionStoryError(message, 422) from exc
                 if exc.code in (401, 403):
                     raise VisionStoryError("VisionStory rejected the server-side API credentials", 424) from exc
                 if exc.code == 429:
