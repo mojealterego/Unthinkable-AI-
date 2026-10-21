@@ -229,65 +229,113 @@ def clone_voice(req: VoiceCloneInput, authorization: str | None = Header(default
     return _call(send)
 
 
+def _image_quote(provider, req: GenerateImageInput) -> tuple[int, str, str]:
+    """Live provider catalog is the single authority on output price and options."""
+    models = provider.image_models().get("models")
+    if not isinstance(models, list):
+        raise VisionStoryError("Provider image model catalog cannot be verified", 424)
+    model = next((
+        item for item in models
+        if isinstance(item, dict) and item.get("model_id") == req.model_id
+    ), None)
+    if model is None:
+        raise VisionStoryError("Image model is not available to this account", 422)
+    params = model.get("params")
+    if not isinstance(params, dict):
+        raise VisionStoryError("Incomplete provider model limits", 424)
+
+    def options(name: str) -> tuple[list, str | None]:
+        section = params.get(name)
+        if not isinstance(section, dict) or not isinstance(section.get("values"), list):
+            raise VisionStoryError("Model lacks " + name + " limits", 424)
+        return section["values"], section.get("default")
+
+    resolutions, default_resolution = options("resolution")
+    ratios, default_ratio = options("aspect_ratio")
+    resolution = req.resolution if req.resolution is not None else default_resolution
+    aspect_ratio = req.aspect_ratio if req.aspect_ratio is not None else default_ratio
+    if not isinstance(resolution, str) or resolution not in resolutions:
+        raise VisionStoryError("Unsupported image resolution", 422)
+    if not isinstance(aspect_ratio, str) or aspect_ratio not in ratios:
+        raise VisionStoryError("Unsupported image aspect ratio", 422)
+    prompt_conf = params.get("prompt")
+    length_cap = prompt_conf.get("max_length") if isinstance(prompt_conf, dict) else None
+    if type(length_cap) is not int or len(req.prompt) > length_cap:
+        raise VisionStoryError("Image prompt exceeds model limit", 422)
+    refs_conf = params.get("refs")
+    max_refs = refs_conf.get("max") if isinstance(refs_conf, dict) else None
+    if req.refs and (type(max_refs) is not int or len(req.refs) > max_refs):
+        raise VisionStoryError("Too many reference images", 422)
+
+    price_by_resolution = model.get("credit_by_resolution")
+    if isinstance(price_by_resolution, dict):
+        price = price_by_resolution.get(resolution)
+    elif resolution == default_resolution:
+        price = model.get("credit_per_image")
+    else:
+        price = None
+    if type(price) is not int or price <= 0:
+        raise VisionStoryError("Exact resolution price not available", 424)
+    return price, resolution, aspect_ratio
+
+
+@router.post("/images/estimate")
+def image_estimate(
+    req: GenerateImageInput,
+    authorization: str | None = Header(default=None),
+):
+    """No paid image generation: fresh model configuration and price only."""
+    _auth(authorization)
+
+    def quote():
+        price, resolution, ratio = _image_quote(configured_client(), req)
+        return {
+            "provider": "visionstory", "model_id": req.model_id,
+            "resolution": resolution, "aspect_ratio": ratio,
+            "credits_estimated": price, "generation_submitted": False,
+            "based_on_live_model_catalog": True,
+        }
+    return _call(quote)
+
+
 @router.post("/images/generate")
-def generate_image(req: GenerateImageInput, authorization: str | None = Header(default=None)):
+def generate_image(
+    req: GenerateImageInput,
+    authorization: str | None = Header(default=None),
+):
     _auth(authorization)
     _confirm(req.confirmed_reference_rights, req.approved_for_paid_generation)
 
     def create():
         provider = configured_client()
-        models = provider.image_models().get("models")
-        if not isinstance(models, list):
-            raise VisionStoryError("Provider model catalog cannot be verified", 424)
-        model = next((m for m in models if isinstance(m, dict) and
-                      m.get("model_id") == req.model_id), None)
-        if model is None:
-            raise VisionStoryError("Requested image model not in live catalog", 422)
-        params = model.get("params")
-        params = params if isinstance(params, dict) else {}
-        def allowed(field):
-            entry = params.get(field)
-            return entry.get("values") if isinstance(entry, dict) else None
-        for field, value in (("aspect_ratio", req.aspect_ratio),
-                             ("resolution", req.resolution)):
-            if value is not None:
-                options = allowed(field)
-                if not isinstance(options, list) or value not in options:
-                    raise VisionStoryError("Unsupported model parameter " + field, 422)
-        allowed_prompt = params.get("prompt")
-        max_prompt = allowed_prompt.get("max_length") if isinstance(allowed_prompt, dict) else None
-        if type(max_prompt) is not int or len(req.prompt) > max_prompt:
-            raise VisionStoryError("Unsupported prompt length", 422)
-        ref_config = params.get("refs", {})
-        max_refs = ref_config.get("max") if isinstance(ref_config, dict) else None
-        if req.refs and (type(max_refs) is not int or len(req.refs) > max_refs):
-            raise VisionStoryError("Reference count exceeds provider model limit", 422)
-        prices = model.get("credit_by_resolution")
-        price = prices.get(req.resolution) if req.resolution is not None and isinstance(prices, dict) else None
-        if price is None and req.resolution is None:
-            price = model.get("credit_per_image")
-        if type(price) is not int or price <= 0:
-            raise VisionStoryError("Cannot verify exact image price", 424)
+        price, resolution, aspect_ratio = _image_quote(provider, req)
         if price > req.max_approved_credits:
             raise VisionStoryError("Image price exceeds approved credit cap", 409)
         balance = provider.credits().get("remaining")
         if type(balance) is not int or balance < price:
             raise VisionStoryError("Provider credits insufficient or unverified", 402)
         payload = {
-            "model_id": req.model_id, "prompt": req.prompt,
-            **({"aspect_ratio": req.aspect_ratio} if req.aspect_ratio else {}),
-            **({"resolution": req.resolution} if req.resolution else {}),
-            **({"refs": [r.model_dump(exclude_none=True) for r in req.refs]}
-                if req.refs else {}),
+            "model_id": req.model_id,
+            "prompt": req.prompt,
+            "resolution": resolution,
+            "aspect_ratio": aspect_ratio,
         }
+        if req.refs:
+            payload["refs"] = [
+                reference.model_dump(exclude_none=True) for reference in req.refs
+            ]
+        # Paid synchronous provider operation. Never retry on timeout.
         response = provider.request("POST", "/api/v1/image", payload)
-        if not isinstance(response.get("url"), str) or not response["url"].startswith("https://"):
+        url = response.get("url")
+        if not isinstance(url, str) or not url.startswith("https://"):
             raise VisionStoryError("No valid image URL returned by provider")
         return {
-            "provider": "visionstory", "url": response["url"],
+            "provider": "visionstory", "url": url,
             "cost_credit": response.get("cost_credit"),
             "approved_credit_cap": req.max_approved_credits,
             "model_id": req.model_id,
+            "resolution": resolution,
+            "aspect_ratio": aspect_ratio,
             "automatic_retry": False, "stored_as_asset": False,
         }
     return _call(create)

@@ -87,7 +87,7 @@ class VisionStoryRest:
             request = urllib.request.Request(url, data=body, headers=headers, method=method)
             opener = urllib.request.build_opener(NoRedirect())
             try:
-                with opener.open(request, timeout=(190 if path in ("/api/v1/media/understand", "/api/v1/audio/transcribe", "/api/v1/audio/align") else 20)) as stream:
+                with opener.open(request, timeout=(190 if path in ("/api/v1/media/understand", "/api/v1/audio/transcribe", "/api/v1/audio/align", "/api/v1/image") else 20)) as stream:
                     raw = stream.read(_MAX_RESPONSE + 1)
                 if len(raw) > _MAX_RESPONSE:
                     raise VisionStoryError("VisionStory response exceeded the safety limit")
