@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'visionstory_gateway.dart';
 import 'visionstory_understanding_screen.dart';
 
@@ -27,11 +28,62 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
   String? error, notice, filename, mime, kind;
   String? ratio, resolution;
   List<int>? bytes;
-  Map<String, dynamic>? result, catalog;
+  Map<String, dynamic>? result, catalog, imageQuote;
+  String? quotedImageParams;
+  bool imageStateLoaded = false, imageAttempted = true;
+  static const _imageAttemptKey = 'unthinkable.visionstory.image.paid.attempted';
 
   @override void initState() {
     super.initState();
     api = widget.gateway ?? VisionStoryGateway();
+    _restoreImageAttempt();
+  }
+
+  Future<void> _restoreImageAttempt() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) setState(() {
+        imageAttempted = prefs.getBool(_imageAttemptKey) ?? false;
+        imageStateLoaded = true;
+      });
+    } on Object {
+      if (mounted) setState(() {
+        imageAttempted = true;
+        imageStateLoaded = true;
+        error = 'Nie odczytano historii płatnego obrazu. Ponowienie zablokowane.';
+      });
+    }
+  }
+
+  Future<void> _persistImageAttempt(bool attempted) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!await prefs.setBool(_imageAttemptKey, attempted)) {
+      throw const FormatException('Nie można zapisać stanu płatnego zadania.');
+    }
+    if (mounted) setState(() => imageAttempted = attempted);
+  }
+
+  Future<void> startNewImage() async {
+    final accepted = await showDialog<bool>(context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Nowa płatna generacja?'),
+        content: const Text(
+          'Jeżeli poprzednie żądanie miało timeout, mogło zostać naliczone. '
+          'Sprawdź historię VisionStory przed zatwierdzeniem nowej generacji.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Anuluj')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Nowe zadanie')),
+        ],
+      ),
+    );
+    if (accepted != true) return;
+    await run(() async { await _persistImageAttempt(false); });
+    if (mounted) setState(() {
+      imageQuote = null;
+      quotedImageParams = null;
+    });
   }
 
   @override void dispose() {
@@ -190,27 +242,55 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
     if (mounted) setState(() { catalog = data; notice = 'Modele pobrane od dostawcy.'; });
   });
 
+  Map<String, Object?> imageParameters() => {
+    'model_id': model.text.trim(),
+    'prompt': prompt.text.trim(),
+    if (resolution != null) 'resolution': resolution,
+    if (ratio != null) 'aspect_ratio': ratio,
+    if (asset.text.trim().isNotEmpty)
+      'refs': [{'asset_id': asset.text.trim()}],
+  };
+
+  Future<void> estimateImage() => run(() async {
+    if (model.text.trim().isEmpty || prompt.text.trim().isEmpty) {
+      throw const FormatException('Wybierz model i uzupełnij opis.');
+    }
+    final parameters = imageParameters();
+    final estimate = await post('images/estimate', parameters);
+    if (mounted) setState(() {
+      imageQuote = estimate;
+      quotedImageParams = jsonEncode(parameters);
+      notice = 'Wycena z katalogu dostawcy. Nie wykonano generacji.';
+    });
+  });
+
   Future<void> images() async {
-    final cap = int.tryParse(creditCap.text.trim());
-    if (cap == null || cap < 1 || cap > 100000 ||
-        model.text.trim().isEmpty || prompt.text.trim().isEmpty) {
-      setState(() => error = 'Podaj model, opis i prawidłowy limit kredytów.');
+    if (!imageStateLoaded || imageAttempted) {
+      setState(() => error = 'Sprawdź poprzednie zlecenie i rozpocznij nowe.');
       return;
     }
-    if (!await approve('Płatne generowanie obrazu', billable: true)) return;
+    final cap = int.tryParse(creditCap.text.trim());
+    final params = imageParameters();
+    final price = imageQuote?['credits_estimated'];
+    if (quotedImageParams != jsonEncode(params) || price is! int ||
+        cap == null || cap < price) {
+      setState(() => error =
+        'Pobierz wycenę tych samych parametrów i zatwierdź właściwy limit.');
+      return;
+    }
+    if (!await approve('Generowanie obrazu: $price kredytów', billable: true)) return;
     await run(() async {
+      // Record the attempt BEFORE a billable call. Timeouts are ambiguous.
+      await _persistImageAttempt(true);
       final data = await post('images/generate', {
-        'model_id': model.text.trim(),
-        'prompt': prompt.text.trim(),
-        if (resolution != null) 'resolution': resolution,
-        if (ratio != null) 'aspect_ratio': ratio,
-        if (asset.text.trim().isNotEmpty)
-          'refs': [{'asset_id': asset.text.trim()}],
-        'confirmed_reference_rights': true,
+        ...params, 'confirmed_reference_rights': true,
         'approved_for_paid_generation': true,
         'max_approved_credits': cap,
       });
-      if (mounted) setState(() { result = data; notice = 'Obraz został wygenerowany.'; });
+      if (mounted) setState(() {
+        result = data;
+        notice = 'Zadanie zakończone. Następne wymaga osobnej zgody.';
+      });
     });
   }
 
@@ -284,6 +364,19 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
     summary(),
   ]);
 
+  List<String> imageOptions(String field) {
+    final entries = catalog?['models'];
+    if (entries is! List) return [];
+    for (final entry in entries) {
+      if (entry is! Map || entry['model_id'] != model.text.trim()) continue;
+      final params = entry['params'];
+      final values = params is Map && params[field] is Map
+          ? (params[field] as Map)['values'] : null;
+      if (values is List) return values.whereType<String>().toList();
+    }
+    return [];
+  }
+
   Widget imageTab() => ListView(padding: const EdgeInsets.all(12), children: [
     const Text('Dostępność modeli i ceny są zależne od Twojego konta.'),
     OutlinedButton(key: const Key('visionstory_image_models'),
@@ -300,12 +393,12 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
               if (params is Map) {
                 final settings = params['resolution'];
                 final ratios = params['aspect_ratio'];
-                resolution = settings is Map && settings['values'] is List &&
-                    (settings['values'] as List).isNotEmpty
-                    ? (settings['values'] as List).first.toString() : null;
-                ratio = ratios is Map && ratios['values'] is List &&
-                    (ratios['values'] as List).isNotEmpty
-                    ? (ratios['values'] as List).first.toString() : null;
+                resolution = settings is Map && settings['default'] is String
+                    ? settings['default'] as String : null;
+                ratio = ratios is Map && ratios['default'] is String
+                    ? ratios['default'] as String : null;
+                imageQuote = null;
+                quotedImageParams = null;
               }
             }),
           ),
@@ -313,11 +406,45 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
     field('vs_image_prompt', 'Opis obrazu', prompt, lines: 3),
     field('vs_image_asset', 'ID zdjęcia referencyjnego (opcjonalne)', asset),
     field('vs_image_credit_cap', 'Limit kredytów', creditCap),
-    if (resolution != null) Text('Rozdzielczość: ' + resolution!),
-    if (ratio != null) Text('Format: ' + ratio!),
+    if (imageOptions('resolution').isNotEmpty)
+      DropdownButtonFormField<String>(
+        key: const Key('vs_image_resolution'),
+        value: imageOptions('resolution').contains(resolution) ? resolution : null,
+        decoration: const InputDecoration(labelText: 'Rozdzielczość'),
+        items: imageOptions('resolution').map((v) =>
+          DropdownMenuItem(value: v, child: Text(v))).toList(),
+        onChanged: busy ? null : (v) => setState(() {
+          resolution = v; imageQuote = null; quotedImageParams = null;
+        })),
+    if (imageOptions('aspect_ratio').isNotEmpty)
+      DropdownButtonFormField<String>(
+        key: const Key('vs_image_ratio'),
+        value: imageOptions('aspect_ratio').contains(ratio) ? ratio : null,
+        decoration: const InputDecoration(labelText: 'Proporcje obrazu'),
+        items: imageOptions('aspect_ratio').map((v) =>
+          DropdownMenuItem(value: v, child: Text(v))).toList(),
+        onChanged: busy ? null : (v) => setState(() {
+          ratio = v; imageQuote = null; quotedImageParams = null;
+        })),
+    OutlinedButton(
+      key: const Key('visionstory_estimate_image'),
+      onPressed: busy ? null : estimateImage,
+      child: const Text('Sprawdź koszt bez generowania')),
+    if (imageQuote != null)
+      Text('Wycena: ${imageQuote!['credits_estimated']} kredytów '
+           '— ${imageQuote!['resolution']}, ${imageQuote!['aspect_ratio']}'),
     approvals(),
+    if (imageAttempted) ...[
+      const Text('Poprzednie żądanie mogło zużyć kredyty. '
+          'Sprawdź historię VisionStory przed nowym zadaniem.'),
+      OutlinedButton(
+        key: const Key('visionstory_new_image_attempt'),
+        onPressed: busy || !imageStateLoaded ? null : startNewImage,
+        child: const Text('Rozpocznij nowe, osobno płatne zadanie')),
+    ],
     FilledButton(key: const Key('visionstory_generate_image'),
-      onPressed: busy ? null : images, child: const Text('Zatwierdź i generuj obraz')),
+      onPressed: busy || !imageStateLoaded || imageAttempted ? null : images,
+      child: const Text('Zatwierdź i generuj obraz')),
     summary(),
   ]);
 
