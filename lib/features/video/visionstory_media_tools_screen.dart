@@ -24,6 +24,10 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
   final avatar = TextEditingController();
   final creditCap = TextEditingController(text: '5');
   final voicePreview = TextEditingController(text: 'Witaj w Unthinkable AI.');
+  final frameZoom = TextEditingController(text: '1.0');
+  final frameOffsetX = TextEditingController(text: '0');
+  final frameOffsetY = TextEditingController(text: '0');
+  String frameRatio = '9:16';
   bool rights = false, consent = false, paid = false, busy = false;
   String? error, notice, filename, mime, kind;
   String? ratio, resolution;
@@ -87,7 +91,7 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
   }
 
   @override void dispose() {
-    for (final c in [host, key, model, prompt, asset, avatar, creditCap, voicePreview]) {
+    for (final c in [host, key, model, prompt, asset, avatar, creditCap, voicePreview, frameZoom, frameOffsetX, frameOffsetY]) {
       c.dispose();
     }
     api.close();
@@ -225,15 +229,29 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
   }
 
   Future<void> frameAvatar() async {
-    if (!await approve('Zmień kadrowanie własnego awatara')) return;
+    final zoom = double.tryParse(frameZoom.text.trim());
+    final offsetX = double.tryParse(frameOffsetX.text.trim());
+    final offsetY = double.tryParse(frameOffsetY.text.trim());
+    if (avatar.text.trim().isEmpty ||
+        zoom == null || !zoom.isFinite || zoom < 1 ||
+        offsetX == null || !offsetX.isFinite || offsetX < -1 || offsetX > 1 ||
+        offsetY == null || !offsetY.isFinite || offsetY < -1 || offsetY > 1) {
+      setState(() => error =
+        'Podaj ID awatara, zoom ≥ 1 i przesunięcia od -1 do 1. '
+        'Maksymalny zoom sprawdza dostawca na podstawie zdjęcia.');
+      return;
+    }
+    if (!await approve('Zmień kadr własnego awatara')) return;
     await run(() async {
       final response = await post('avatars/framing', {
         'avatar_id': avatar.text.trim(),
-        'aspect_ratio': ratio ?? '9:16',
-        'zoom': 1.0, 'offset_x': 0.0, 'offset_y': 0.0,
+        'aspect_ratio': frameRatio,
+        'zoom': zoom, 'offset_x': offsetX, 'offset_y': offsetY,
         'confirmed_framing_change': true,
       });
-      if (mounted) setState(() { result = response; notice = 'Zapisano kadrowanie.'; });
+      if (mounted) setState(() {
+        result = response; notice = 'Zapisano kadr $frameRatio dla tego awatara.';
+      });
     });
   }
 
@@ -344,13 +362,20 @@ class _VisionStoryMediaToolsScreenState extends State<VisionStoryMediaToolsScree
       onPressed: busy ? null : makeAvatar, child: const Text('Utwórz awatar')),
     field('vs_avatar_id', 'ID własnego awatara', avatar),
     DropdownButton<String>(
-      key: const Key('vs_frame_ratio'), value: ratio ?? '9:16',
+      key: const Key('vs_frame_ratio'),
+      value: frameRatio,
       items: const ['9:16', '16:9', '1:1'].map((r) =>
         DropdownMenuItem(value: r, child: Text(r))).toList(),
-      onChanged: (v) => setState(() => ratio = v),
+      onChanged: (v) => setState(() => frameRatio = v ?? frameRatio),
     ),
+    field('vs_frame_zoom', 'Powiększenie (zoom ≥ 1)', frameZoom),
+    field('vs_frame_x', 'Przesunięcie X (-1 .. 1)', frameOffsetX),
+    field('vs_frame_y', 'Przesunięcie Y (-1 .. 1)', frameOffsetY),
+    const Text('Kadr sprawdza VisionStory: własność awatara, obecność twarzy '
+      'i maksymalne zbliżenie zależne od fotografii.'),
     OutlinedButton(key: const Key('visionstory_frame_avatar'),
-      onPressed: busy ? null : frameAvatar, child: const Text('Ustaw kadr 1:1')),
+      onPressed: busy ? null : frameAvatar,
+      child: const Text('Zatwierdź zmianę kadrowania')),
     summary(),
   ]);
 
