@@ -14,3 +14,5 @@ id,filename,pages,sha256,scope
 "VS-013","Structured Media Understanding API — VisionStory.PDF","4","28666d57b854809bbc37ed2ef786122842eff8b9655cb5bb03398fd1775e96a7","Media understanding 1-8 inputs, schema, credits, Flutter form, local/remote MCP"
 "VS-014","VisionStory CLI.PDF","13","51c421539d0ca5a00a925a48b8502aeb377b51bbfded316b532d6b55ee42339c","CLI install doctor contract read-only credits, API/SDK tool surface"
 "VS-015","VisionStory API for AI Agents(1).PDF","9","070e1d8131dcc46817c8691f525e04c7f6073fb1d73b515e51708812d102933b","English counterpart and extension to VS-006, MCP local remote Skill 28 operations claim"
+"VS-016","AI Avatar API — VisionStory(1).PDF","5","4f5fd99355495eb8bcacd3fa4e0b1a9387cb1bdf55de9f0e193fdc27358525c6","English counterpart of VS-010; no duplicate requirements"
+"VS-017","AI Image Generation API — VisionStory.PDF","5","ad7c5502625910dbaa0b284b9268477729a0d81e658220f0fa3c106cd7ab56d5","Image generation and editing API, live model cost, references, output storage and timeout"

@@ -461,3 +461,17 @@ Ta tabela jest **bieżącą korektą starszych opisów „Plan” w poprzednich 
 | Provider account, rzeczywista transakcja, kompletne MCP 28 narzędzi | Sekrety/host dostarcza operator | **Zablokowane lub nieukończone**; nie reklamować jako działające |
 
 Finalny projekt UI i grafiki pozostają do dostarczenia przez właściciela. Program pozostaje otwarty na nowe materiały bez dopisywania „ukończone” z powodu samej obecności przycisku.
+
+
+## Partia VI — podwidoki Avatar/Image (VS-016, VS-017)
+
+| UI ID | Element do przygotowania w projekcie właściciela | Backend / Flutter | Status |
+|---|---|---|---|
+| F-VS-AVATAR-LIB | Własne/publiczne awatary, 3 kadry, default_voice_id, pagination | Istnieje lista API | Częściowy UI |
+| F-VS-AVATAR-FRAME | 9:16, 16:9, 1:1; zoom, X/Y; framing_unavailable, max_zoom, podgląd | Kod zmiany kadru i 5 pól | Podgląd/obsługa błędów do dokończenia |
+| IMG-VS-MODELS | Live model + rozdzielczości i 10 proporcji, refs max | Backend i selektory Flutter | Jest kod |
+| IMG-VS-COST | Bezpłatna cena według credit_by_resolution | Endpoint images/estimate i UI | Jest kod; live niezweryfikowany |
+| IMG-VS-GENERATE | Prompt + refs + koszt + blokada powtórzenia | REST 190 s, UI stan próby | Jest kod; płatny test zablokowany |
+| IMG-VS-ARCHIVE | Zapis obrazu, trwały asset_id, import do sceny/NLE | Ręczny upload możliwy | Brak integracji automatycznej |
+
+Specyfikacja źródłowa: docs/VISIONSTORY_BATCH_06_AUDIT.md. Nie traktować tych podwidoków jako nowych ekranów top-level bez deduplikacji w 141-ekranowej mapie.

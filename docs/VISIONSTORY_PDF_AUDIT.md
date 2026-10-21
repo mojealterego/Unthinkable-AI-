@@ -85,3 +85,7 @@ Szczegółowa analiza **22 stron**, identyfikatory funkcji, stany kodu, dodatkow
 ## Partia V — VS-013–VS-015
 
 Audyt 26 stron (4 + 13 + 9), pliki z SHA-256, mapowanie do funkcji i UI: [VISIONSTORY_BATCH_05_AUDIT.md](VISIONSTORY_BATCH_05_AUDIT.md). VS-015 jest angielskim odpowiednikiem/rozszerzeniem wcześniejszego VS-006, nie powiela implementacji. Łącznie 15 dokumentów i 98 stron; następny VS-016.
+
+## VisionStory Partia VI — VS-016/VS-017
+
+Przyjęto 3 pliki/15 stron; ponownie dostarczony polski Avatar API ma identyczny SHA-256 jak VS-010. Angielska wersja Avatar API oraz Image Generation API są VS-016/VS-017. Rejestr: 17 odrębnych PDF, 108 stron. Audyt po stronach i status implementacji: [VISIONSTORY_BATCH_06_AUDIT.md](VISIONSTORY_BATCH_06_AUDIT.md).
