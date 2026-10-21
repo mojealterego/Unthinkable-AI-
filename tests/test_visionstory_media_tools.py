@@ -109,6 +109,77 @@ class MediaToolTests(unittest.TestCase):
         self.assertEqual(result.json()["cost_credit"], 5)
         self.assertFalse(result.json()["automatic_retry"])
 
+    def test_image_estimate_does_not_charge_and_includes_exact_resolution_price(self):
+        body = {
+            "model_id": "image_model1", "prompt": "Studio portrait",
+            "aspect_ratio": "1:1", "resolution": "2K",
+        }
+        answer = self.http.post(API + "/images/estimate", headers=AUTH, json=body)
+        self.assertEqual(answer.status_code, 200, answer.text)
+        self.assertFalse(answer.json()["generation_submitted"])
+        self.assertEqual(answer.json()["credits_estimated"], 5)
+        self.assertEqual(answer.json()["resolution"], "2K")
+        self.assertFalse(any(method == "POST" and path == "/api/v1/image"
+                             for method, path, _ in self.provider.calls))
+
+    def test_image_estimate_rejects_bad_model_options_without_paid_request(self):
+        cases = [
+            {"resolution": "4K"},
+            {"aspect_ratio": "21:9"},
+            {"prompt": "x" * 2001},
+            {"refs": [{"asset_id": "ref1"}] * 3},
+            {"model_id": "does_not_exist"},
+        ]
+        for change in cases:
+            self.provider.calls.clear()
+            with self.subTest(change=change):
+                body = {"model_id": "image_model1", "prompt": "Portrait",
+                        "resolution": "2K", "aspect_ratio": "1:1"} | change
+                result = self.http.post(
+                    API + "/images/estimate", headers=AUTH, json=body
+                )
+                self.assertEqual(result.status_code, 422, result.text)
+                self.assertFalse(any(method == "POST" for method, _, _ in self.provider.calls))
+
+    def test_image_explicit_resolution_requires_verified_price(self):
+        self.provider.calls.clear()
+        data = {"model_id": "image_model1", "prompt": "Edit portrait",
+                "aspect_ratio": "1:1", "resolution": "1K",
+                "confirmed_reference_rights": True,
+                "approved_for_paid_generation": True,
+                "max_approved_credits": 3}
+        result = self.http.post(API + "/images/generate", headers=AUTH, json=data)
+        self.assertEqual(result.status_code, 200, result.text)
+        outgoing = [body for method, path, body in self.provider.calls
+                    if method == "POST" and path == "/api/v1/image"]
+        self.assertEqual(len(outgoing), 1)
+        self.assertEqual(outgoing[0]["resolution"], "1K")
+
+    def test_image_sync_operation_receives_long_vendor_timeout(self):
+        import io
+        import json
+        from unittest.mock import patch
+        seen = []
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *_):
+                pass
+            def read(self, size):
+                return json.dumps({"data": {"url": "https://cdn.example/img.png"}}).encode()
+        class Opener:
+            def open(self, request, timeout):
+                seen.append(timeout)
+                return Response()
+        with patch("services.visionstory.client.urllib.request.build_opener",
+                   return_value=Opener()):
+            client = VisionStoryRest("fake-provider")
+            result = client.request("POST", "/api/v1/image", {
+                "model_id": "image_model1", "prompt": "Create",
+            })
+        self.assertEqual(result["url"], "https://cdn.example/img.png")
+        self.assertGreaterEqual(seen[0], 180)
+
     def test_invalid_media_never_reaches_provider(self):
         denied = self.http.post(API + "/assets/upload", headers=AUTH,
             json={"url": "https://127.0.0.1/test.png",
