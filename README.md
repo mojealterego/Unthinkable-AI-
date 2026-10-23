@@ -1,10 +1,18 @@
 # UNTHINKABLE AI
 
-> Status (2026-10-19): actively implemented Android Flutter **prototype**, Python cinema-planning API and CI. GitHub Actions has previously built real Android **debug APK** artifacts. This is not a production AI application, a release AAB, or a native image/video inference product. Check workflow run IDs for the current commit.
+> Status (2026-10-23): rozwijany prototyp platformy Android-first. Repozytorium zawiera testowalne moduły, w tym własny backend montażu FFmpeg i ekrany Flutter. Nie jest to jeszcze produkcyjna aplikacja ani kompletna natywna inferencja AI; każdy komponent należy oceniać według jego testów i działania.
 
 ## Product goal
 
 Android-first AI platform with local GGUF inference and hybrid cloud compute. The intended system includes voice chat, multimodal generation, a professional film editor, Code/NoCode app/game/agent builders, Deep Research, a permissioned DGM/RSI improvement loop, communications, an owner-only research workspace, and a digital marketplace. **All requirements are tracked individually; none is considered implemented solely because a PDF describes it.**
+
+## Zasada nadrzędna: jedna platforma, wiele modułów
+
+Unthinkable AI jest **samodzielnym ekosystemem**, a nie klientem VisionStory lub innej zewnętrznej usługi. Studio Filmowe stanowi **jedną z 27 domen wymagań i 18 grup projektowych UI**, obok modeli, obrazów, audio, kreatorów WWW, aplikacji i gier, agentów, narzędzi, badań, komunikacji, marketplace, panelu właściciela oraz infrastruktury. Obowiązuje ciągła implementacja wszystkich wymagań z `requirements/requirements.csv` i kolejnych dokumentów użytkownika, z rozdzieleniem kodu od nieukończonych funkcji.
+
+Domyślny przepływ: **własne modele BYOM + własne lokalne/serwerowe worker-y + własne projekty**. Materiały VisionStory są **referencją funkcjonalną** (awatary, lip-sync, timeline, modele, audio, przetwarzanie plików), nie warunkiem uruchomienia aplikacji i nie domyślną trasą rozliczaną kredytami obcej platformy. Adaptery obcych usług mogą istnieć wyłącznie jako opcjonalne, wyraźnie autoryzowane narzędzia; `UNTHINKABLE_ENABLE_LEGACY_VISIONSTORY` jest domyślnie wyłączone.
+
+Aktualne własne Studio: `services/film_studio/`, `services/cinema/owned_studio.py`, `lib/features/video/own_film_studio_screen.dart`. Działają podstawowe operacje importu, łączenia materiałów i soundtracku FFmpeg; generacja Wan/LTX/ODYN, avatar/face-swap, MP3→teledysk z beat detection i NLE 123+ pozostają osobnymi etapami. Dokumentacja: [Granice modułów i ścieżka produktu](docs/PRODUCT_MODULE_BOUNDARIES.md), [Studio Filmowe](docs/OWN_FILM_STUDIO.md), [Mapa UI](docs/UI_SCREEN_INTEGRATION_MASTER.md).
 
 ## Architecture direction (proposed; not yet benchmarked)
 
