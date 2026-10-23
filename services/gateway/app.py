@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, model_validator
 from typing import Literal
 from services.ai_studio.omni_orchestrator import router as creative_router, _auth
 from services.cinema.orchestrator import run_studiosync
+from services.cinema.owned_studio import router as owned_cinema_router
 from services.cinema.crew.orchestrator import build_run
 from dataclasses import asdict
 
@@ -27,6 +28,7 @@ app.include_router(visionstory_router)
 app.include_router(visionstory_speech_router)
 app.include_router(visionstory_production_router)
 app.include_router(visionstory_media_router)
+app.include_router(owned_cinema_router)
 
 class IncidentRequest(BaseModel):
     description: str = Field(min_length=10, max_length=4000)
