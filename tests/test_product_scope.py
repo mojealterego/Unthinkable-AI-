@@ -34,7 +34,7 @@ class ProductScopeTests(unittest.TestCase):
         code = (
             "import json\n"
             "from services.gateway.app import app\n"
-            "paths = {route.path for route in app.routes}\n"
+            "paths = set(app.openapi().get('paths', {}))\n"
             "print(json.dumps({\n"
             " 'film': '/api/film-studio/capabilities' in paths,\n"
             " 'cinema': '/api/cinema/owned/capabilities' in paths,\n"
