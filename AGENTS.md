@@ -46,3 +46,13 @@ Dla VisionStory szczegóły źródłowe i rozszerzenia znajdują się w `require
 ## Zakaz uzależniania własnego Studia Filmowego od dostawcy (decyzja 2026-10-23)
 
 Dokumentacja VisionStory stanowi materiał porównawczy funkcji, nie kontrakt usługowy. Studio Filmowe Unthinkable AI musi korzystać z własnych modeli, własnych pracowników GPU, własnej biblioteki zasobów, FFmpeg/NLE i własnej infrastruktury. Konto, klucz i kredyty VisionStory nie są częścią domyślnego produktu. Historyczny kod adaptera dostawcy może pozostać nieaktywny do regresji, ale nie stanowi ścieżki implementacji wymagań. Przy każdym nowym dokumencie rozwijaj nasze silniki oraz realne ekrany użytkownika, nie odpłatne integracje stron trzecich. Nie oznaczaj FFmpeg jako gotowego generowania Wan/ODYN bez prawdziwego modelu i testu.
+
+## PRODUCT SCOPE GUARD — 2026-10-23
+
+Unthinkable AI is a multi-module platform. Film Studio is exactly ONE of its 27 product domains, not the whole application. Preserve all 27 UI product domains in lib/main.dart, their distinct responsibilities, and the global UI/integration inventory.
+
+VisionStory and other vendor PDFs are sources of functional requirements for our own implementation; they are not an authorization to copy proprietary internals and do not make vendor accounts, credits, keys or APIs prerequisites for our film studio. The default VIDEO entry points to our film engines in services/film_studio and services/cinema/owned_studio.py and to our project/asset interfaces. Vendor compatibility is historical optional functionality, disabled by default.
+
+Keep IMAGE, AUDIO, MODELS, AGENTS, GAME, APPS, WEB, CHAT, MARKET, PAY and all other domains independent; use shared first-party asset/model/worker layers instead of collapsing them into a video-specific product. Do not claim that FFmpeg assembly is AI generation or complete NLE. Always show verified delivery versus missing native inference, rendering, rights and infrastructure blockers.
+
+Full product contract: docs/PRODUCT_SYSTEM_SCOPE.md. Regression: tests/test_product_scope.py.
