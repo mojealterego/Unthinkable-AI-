@@ -1,3 +1,4 @@
+import 'features/video/own_film_studio_screen.dart';
 import 'features/web/web_studio_screen.dart' as creator;
 import 'features/web_studio/web_studio_screen.dart' as engineering;
 import 'features/tools/ai_tools_screen.dart';
@@ -5,10 +6,10 @@ import 'features/virtual_number/virtual_number_screen.dart';
 import 'features/diffusion/model_library_screen.dart';
 import 'features/chat/api_chat.dart';
 import 'features/video/storyboard.dart';
-import 'features/video/visionstory_screen.dart';
-import 'features/video/visionstory_studio_screen.dart';
-import 'features/video/visionstory_media_tools_screen.dart';
-import 'features/video/visionstory_understanding_screen.dart';
+
+
+
+
 import 'package:flutter/material.dart';
 
 void main() => runApp(const UnthinkableAiApp());
@@ -240,60 +241,32 @@ class DomainScreen extends StatelessWidget {
           ),
         ],
         if (domain.code == 'VIDEO') ...[
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           FilledButton.icon(
+            key: const Key('open_own_film_studio'),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const OwnFilmStudioScreen()),
+            ),
+            icon: const Icon(Icons.movie_creation_outlined),
+            label: const Text('Unthinkable Film Studio — nasz silnik'),
+          ),
+          OutlinedButton.icon(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const FilmStudioScreen()),
             ),
             icon: const Icon(Icons.view_timeline_outlined),
-            label: const Text('Otwórz studio scen i ujęć'),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            key: const Key('open_visionstory_avatar'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const VisionStoryScreen()),
-            ),
-            icon: const Icon(Icons.record_voice_over_outlined),
-            label: const Text('VisionStory — awatary mówiące, MP4 i napisy'),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            key: const Key('open_visionstory_generators'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const VisionStoryStudioScreen()),
-            ),
-            icon: const Icon(Icons.movie_creation_outlined),
-            label: const Text('VisionStory — generowanie klipów i plan kosztów'),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            key: const Key('open_visionstory_media_tools'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const VisionStoryMediaToolsScreen()),
-            ),
-            icon: const Icon(Icons.auto_fix_high_outlined),
-            label: const Text('VisionStory — awatary, obrazy i głosy'),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            key: const Key('open_visionstory_understanding'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const VisionStoryUnderstandingScreen()),
-            ),
-            icon: const Icon(Icons.insights_outlined),
-            label: const Text('Analiza obrazów, audio i wideo → JSON'),
+            label: const Text('Storyboard i ekipa filmowa'),
           ),
         ],
         if (domain.code == 'AUDIO') ...[
           const SizedBox(height: 16),
           FilledButton.icon(
-            key: const Key('open_visionstory_audio'),
+            key: const Key('open_own_music_video'),
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const VisionStoryScreen()),
+              MaterialPageRoute<void>(builder: (_) => const OwnFilmStudioScreen()),
             ),
-            icon: const Icon(Icons.subtitles_outlined),
-            label: const Text('Studio mowy — TTS, transkrypcja i napisy SRT'),
+            icon: const Icon(Icons.music_video_outlined),
+            label: const Text('Teledysk MP3 — nasza montażownia'),
           ),
         ],
       ]),

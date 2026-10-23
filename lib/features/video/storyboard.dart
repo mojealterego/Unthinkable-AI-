@@ -1,6 +1,7 @@
-import 'visionstory_studio_screen.dart';
-import 'visionstory_media_tools_screen.dart';
-import 'visionstory_screen.dart';
+import 'own_film_studio_screen.dart';
+
+
+
 import 'production_planner.dart';
 import 'dart:convert';
 
@@ -261,29 +262,14 @@ class _FilmStudioScreenState extends State<FilmStudioScreen> {
                   label: const Text('Plan filmowy AI'),
                 ),
                 OutlinedButton.icon(
-                  key: const Key('open_visionstory'),
+                  key: const Key('open_own_film_renderer'),
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const VisionStoryScreen()),
+                    MaterialPageRoute<void>(
+                      builder: (_) => const OwnFilmStudioScreen(),
+                    ),
                   ),
                   icon: const Icon(Icons.movie_creation_outlined),
-                  label: const Text('VisionStory: awatary i MP4'),
-                ),
-                OutlinedButton.icon(
-                  key: const Key('open_visionstory_advanced'),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const VisionStoryStudioScreen()),
-                  ),
-                  icon: const Icon(Icons.auto_awesome_outlined),
-                  label: const Text('VisionStory: generatywne wideo'),
-                ),
-                OutlinedButton.icon(
-                  key: const Key('open_visionstory_media_tools'),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) =>
-                      const VisionStoryMediaToolsScreen()),
-                  ),
-                  icon: const Icon(Icons.face_retouching_natural),
-                  label: const Text('VisionStory: awatary, głosy i obrazy'),
+                  label: const Text('Nasza montażownia MP4 i teledyski MP3'),
                 ),
                 OutlinedButton(onPressed: _export, child: const Text('Eksport JSON')),
                 OutlinedButton(onPressed: _import, child: const Text('Import JSON')),
