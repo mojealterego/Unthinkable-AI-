@@ -41,3 +41,8 @@ Dla VisionStory szczegóły źródłowe i rozszerzenia znajdują się w `require
 5. Model profile is metadata for selection and UI; it must not misrepresent actual model internals. Treat uncensored/abliterated as technically supported user model variants, not as a guarantee of unlimited output. Follow age and legal protections.
 6. When reading third-party docs, extract **capabilities, workflows and UX requirements**, implement independently in the Unthinkable product using owned/self-hosted components whenever possible, and clearly label capabilities still blocked on local engine/GPU/codec.
 7. UI roadmap priority: My Models > Local Chat > Image Generation > Film Studio > Audio > Builders, then optional external adapters.
+
+
+## Zakaz uzależniania własnego Studia Filmowego od dostawcy (decyzja 2026-10-23)
+
+Dokumentacja VisionStory stanowi materiał porównawczy funkcji, nie kontrakt usługowy. Studio Filmowe Unthinkable AI musi korzystać z własnych modeli, własnych pracowników GPU, własnej biblioteki zasobów, FFmpeg/NLE i własnej infrastruktury. Konto, klucz i kredyty VisionStory nie są częścią domyślnego produktu. Historyczny kod adaptera dostawcy może pozostać nieaktywny do regresji, ale nie stanowi ścieżki implementacji wymagań. Przy każdym nowym dokumencie rozwijaj nasze silniki oraz realne ekrany użytkownika, nie odpłatne integracje stron trzecich. Nie oznaczaj FFmpeg jako gotowego generowania Wan/ODYN bez prawdziwego modelu i testu.

@@ -240,7 +240,7 @@ class _OwnFilmStudioScreenState extends State<OwnFilmStudioScreen> {
     body: SafeArea(child: ListView(padding: const EdgeInsets.all(16), children: [
       Text('Nasze Studio Filmowe', style: Theme.of(context).textTheme.headlineSmall),
       const Text('Własny silnik montażu i własna infrastruktura. '
-        'Nie wymaga konta ani kredytów VisionStory.'),
+        'Nie wymaga konta ani kredytów zewnętrznej platformy.'),
       const SizedBox(height: 14),
       TextField(key: const Key('own_film_server'), controller: server,
         decoration: const InputDecoration(labelText: 'Serwer Unthinkable AI HTTPS')),

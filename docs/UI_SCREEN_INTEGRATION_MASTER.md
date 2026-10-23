@@ -3,6 +3,14 @@
 
 **Audience:** UI/UX designer preparing all screens before final visual asset handoff. This is a **navigation / interaction contract**, not a claim that every screen is coded. No missing-feature cards are allowed to masquerade as working functions.
 
+## Obowiązująca decyzja właściciela: Studio Filmowe jest WŁASNE (2026-10-23)
+
+Nie renderujemy na koncie VisionStory i nie kupujemy jego kredytów. Wszystkie przesłane dokumenty VisionStory są referencją funkcji do odtworzenia we własnym produkcie, a nie instrukcją integracji produkcyjnego dostawcy. Nie kopiujemy ich zamkniętego kodu, ekranów ani zasobów.
+
+Punkt wejścia Unthinkable AI VIDEO i AUDIO prowadzi do naszego studia, a nie formularzy VisionStory. Własne usługi: services/film_studio i services/owned_cinema; model BYOM, własne zasoby, prywatne zadania FFmpeg i MP3 soundtrack. Dostępność zewnętrznych endpointów VisionStory jest wyłączona, chyba że operator świadomie włączy historyczny tryb testowania integracji. Główna aplikacja nie wymaga żadnego konta dostawcy.
+
+Docelowe własne komponenty wymagające dalszej implementacji: generacja Wan/LTX/ODYN na własnym GPU, własne awatary/aktorzy, zdjęcia referencyjne, kontrolowana podmiana twarzy, lip-sync, teledysk z analizą rytmu i NLE 123+ minut z keyframes/VFX. Aktualny FFmpeg realizuje podstawowe faktyczne składanie ujęć i podkład MP3, a nie wszystkie funkcje generatora AI. Szczegóły: docs/OWN_FILM_STUDIO.md.
+
 ## Właściwa architektura produktu: nasz ekosystem BYOM
 
 **Podstawa Unthinkable AI**: modele własne (GGUF/safetensors, także Uncensored i Abliterated), własny runtime, własne projekty i narzędzia filmowe; tryb offline tam, gdzie obsługiwane są silnik i urządzenie. **Zewnętrzne platformy nie są wymagane** i nie stanowią domyślnej drogi wykonawczej.

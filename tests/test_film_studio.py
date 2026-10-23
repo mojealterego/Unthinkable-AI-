@@ -23,6 +23,10 @@ class OwnStudioTests(unittest.TestCase):
         env.start();auth.start();self.addCleanup(env.stop);self.addCleanup(auth.stop)
         self.api=TestClient(app)
 
+    def test_legacy_vendor_not_in_default_backend(self):
+        result = self.api.get("/api/cinema/visionstory/models", headers=AUTH)
+        self.assertEqual(result.status_code, 404)
+
     def test_provider_free_and_capabilities_truthful(self):
         r=self.api.get(URL+"/capabilities",headers=AUTH)
         self.assertEqual(r.status_code,200,r.text)
