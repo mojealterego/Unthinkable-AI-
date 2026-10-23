@@ -282,7 +282,7 @@ class _OwnedCinemaScreenState extends State<OwnedCinemaScreen> {
         FilledButton.icon(
           key: const Key('cinema_own_render'),
           onPressed: _busy || _clips.isEmpty || !_rights || !_approve ? null : _render,
-          icon: const Icon(Icons.movie_edit_outlined),
+          icon: const Icon(Icons.movie_creation_outlined),
           label: const Text('Zmontuj i wyrenderuj MP4')),
         if (_jobId != null) ...[
           Text('Zadanie: ' + _jobId! + ' • ' +
