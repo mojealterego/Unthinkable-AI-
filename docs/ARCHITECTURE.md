@@ -1,5 +1,7 @@
 # Unthinkable AI — Reference Architecture v0.1 (PROPOSAL)
 
+> **Aktualizacja decyzji (2026-10-23):** architektura poniżej opisuje pierwotny kierunek projektu i nie jest aktualnym rejestrem stanu każdego modułu. Normatywny podział własnych modułów, brak zależności od VisionStory oraz rozdział 27 domen / 18 grup UI opisuje [ADR-002](ADR-002-OWNED-PLATFORM-BOUNDARIES.md). Podstawowy własny montaż FFmpeg istnieje w `services/film_studio/` i `services/cinema/owned_studio.py`. Stwierdzenia „not implemented” w historycznej tabeli monorepo opisują stan pierwotnego bootstrapu i wymagają ponownego audytu przed użyciem jako aktualny stan.
+
 ## Evidence states
 
 **Observed:** source documents discuss `portable_ai_flutter`, `llamadart` and `llama.cpp` integration. No original APK or intact Dart source tree is present in the current checked-in repository. Code blocks in PDF/DOCX are candidates for independent clean-room review, not proofs of a working app.
