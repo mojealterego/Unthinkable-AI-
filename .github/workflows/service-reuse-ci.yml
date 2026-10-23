@@ -5,6 +5,10 @@ on:
     paths:
       - "services/**"
       - "tests/test_service_integration.py"
+      - "tests/test_product_scope.py"
+      - "tests/test_film_studio.py"
+      - "lib/main.dart"
+      - "docs/PRODUCT_SYSTEM_SCOPE.md"
       - "tests/test_visionstory_*.py"
       - ".github/workflows/service-reuse-ci.yml"
   workflow_dispatch:
