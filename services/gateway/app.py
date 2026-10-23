@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Header, HTTPException
+import os
+from services.film_studio.router import router as own_film_router
 from services.visionstory.router import router as visionstory_router
 from services.visionstory.speech import router as visionstory_speech_router
 from services.visionstory.production import router as visionstory_production_router
@@ -24,10 +26,13 @@ app.include_router(virtual_number_router)
 app.include_router(web_studio_router)
 app.include_router(web_router)
 app.include_router(nocode_router)
-app.include_router(visionstory_router)
-app.include_router(visionstory_speech_router)
-app.include_router(visionstory_production_router)
-app.include_router(visionstory_media_router)
+app.include_router(own_film_router)
+# Historical provider adapters are opt-in only. Unthinkable never needs them.
+if os.getenv("UNTHINKABLE_ENABLE_LEGACY_VISIONSTORY", "0") == "1":
+    app.include_router(visionstory_router)
+    app.include_router(visionstory_speech_router)
+    app.include_router(visionstory_production_router)
+    app.include_router(visionstory_media_router)
 app.include_router(owned_cinema_router)
 
 class IncidentRequest(BaseModel):
