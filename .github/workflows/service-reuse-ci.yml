@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "services/**"
+      - "tests/**"
       - "tests/test_service_integration.py"
       - "tests/test_product_scope.py"
       - "tests/test_film_studio.py"
